@@ -13,31 +13,9 @@
 
 Any data that would normally be preprocessed will not be preprocessed if it is within an inline code section or a code block.
 
-However, variables and functions preceded by a (single backtick (`` ` ``) | backslash (`\`)) *will* be expanded in the code block. There is no way to expand variables inside of inline code, but a function to transmute a variable into inline code is easy to write:
-
-```
-%insert_inline(string1, value) {
-	string result = "`"
-	result = strcat(result, string1)
-	result = strcat(result, value)
-	result = strcat(result, "`")
-	return result;
-}
-
-%value = 12
-
-The line %insert_inline("int x = ", %value) ...
-```
-
-becomes
-
-```
-The line `int x = 12` ...
-```
+However, variables and functions preceded by a backslash (`\`) *will* be expanded in code.
 
 ## Comments
-
-Comments follow the same syntax as C/C++: characters between `//` and `\n`, as well as characters between `/*` and `*/` are discarded.
 
 ## Preprocessor Directives
 

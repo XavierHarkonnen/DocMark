@@ -42,7 +42,7 @@ Consider adding a brief introductory section at the beginning that provides a hi
 				- [Linking Images](#linking-images)
 			- [Audio](#audio)
 			- [Video](#video)
-		- [Escaping Characters](#escaping-characters)
+		- [Escape Character](#escape-character)
 		- [Tables](#tables)
 				- [Centering](#centering)
 			- [Top-Titled Tables](#top-titled-tables)
@@ -224,11 +224,11 @@ For italics, the text should be surrounded by single asterisks (`*`); for bold, 
 
 Inline code *can* be used as emphasis and is syntactically similar to emphasis. However, it should be used to denote programming code or code-like elements instead of additional meaning or stress on a piece of text.
 
-### Blockquotes
+### Blockquotes<!--TODO: RESUME HERE-->
 
-Block quotations are sections of text formatted to highlight quoted content in writing.
+Block quotations are sections of text formatted to represent quoted content in writing.
 
-To create a blockquote, a line must be preceded by a greater-than symbol (`>`) followed by whitespace.
+To create a blockquote, a line must start with a greater-than symbol (`>`) separated from the text of the quote by whitespace.
 
 | DocMark | HTML |
 |:-:|:-:|
@@ -260,7 +260,13 @@ Lorem ipsum dolor sit amet...
 
 ### Lists
 
+Lists are used to sequentially organize a set of items in a document.
+
+Lists can contain elements within themselves; this allows for headers, paragraphs, emphasis, and other lists to be elements of a list. The first level of a list must be the first element on its line, and indented sections are included as elements of the prior list item.
+
 #### Ordered Lists
+
+Ordered lists are used to list items when there is a need to refer to items by number or if the sequence of items is important. Each item in the list is bulleted by a unique, ascending numeric value.
 
 ```
 1. First item
@@ -282,6 +288,8 @@ Lorem ipsum dolor sit amet...
 
 #### Unordered Lists
 
+Unordered lists are used to list items when the order and number of the list items are not important. Each item in the list is bulleted by the same mark, though it may change with the level of the list.
+
 ```
 - First item
 - Second item
@@ -301,6 +309,9 @@ Lorem ipsum dolor sit amet...
 ```
 
 #### Definition Lists
+
+Definition lists are used to list a series of matches between keywords and definitions.
+
 ```
 Term 1
 : Definition 1
@@ -373,13 +384,25 @@ To create a link, enclose the link text in brackets and follow it immediately wi
 
 #### Images
 
+Both
+
 ```
 ![alt text](example.png "title")
 ```
 
+and
+
+```
+![alt text](example.png "title"; image/png)
+```
+
+are valid syntax, and both will produce this HTML:
+
 ```
 <img src="example.png" alt="example" title="title">
 ```
+
+The addition of `; image/png` only serves to make the DocMark  syntax more consistent with other forms of media, but it is not mandatory.
 
 ##### Linking Images
 
@@ -421,9 +444,9 @@ alt text
 </video>
 ```
 
-### Escaping Characters
+### Escape Character
 
-To display a literal character that would otherwise be used to format text, a backslash (`\`) can be added in front of the character.
+DocMark's escape character is the backslash (`\`). To display a character that would otherwise be used to format text, precede it with a backslash. For example, to display a backtick, you would enter `` \` ``. Macros in code can also be escaped to reenable preprocessor expansion.
 
 ### Tables
 
@@ -662,37 +685,27 @@ Lorem ipsum dolor sit amet, ...
 |]
 ```
 
-Translation
-
-```
-[|	->	<div class="row"><div class="column">
-||	->	</div><div class="column">
-|]	->	</div></div>
-```
-
-HTML
-
-```
-<div class="row">
+```html
+<div class="column-box">
 	<div class="column">Lorem ipsum dolor sit amet, ...</div>
 	<div class="column">Lorem ipsum dolor sit amet, ...</div>
 </div>
 ```
 
-CSS
+The indentation is handled by CSS, but by default should look like this:
 
-```
+```css
 <style>
 .column-box {
 	display: flex;
-	justify-content: space-between; /* Adjust as needed */
+	justify-content: space-between;
 }
 
 .column {
-	width: 48%; /* Adjust as needed */
-	padding: 10px; /* Adjust the padding as needed */
-	box-sizing: border-box; /* Ensures padding is included in the width */
-	margin-bottom: 10px; /* Optional: Add margin between columns */
+	width: 48%;
+	padding: 10px;
+	box-sizing: border-box;
+	margin-bottom: 10px;
 }
 </style>
 ```
@@ -700,6 +713,64 @@ CSS
 ### Infoboxes
 
 TODO
+
+```
+[[
+## TITLE
+[ALT_TEXT](IMAGE_PATH)
+### CATEGORY
+HEADING
+- CONTENT
+]]
+```
+
+```html
+<div class="infobox-container">
+	<div class="infobox">
+		<div class="heading">
+			<h2>TITLE</h2>
+		</div>
+		<img src="IMAGE_PATH" alt="ALT_TEXT" class="infobox-img">
+		<div class="infobox-group">
+			<div class="heading">
+				<h3>CATEGORY</h3>
+			</div>
+			<div class="infobox-data">
+				<dl class="infobox-datarow">
+						<dt>HEADING</dt>
+						<dd>CONTENT</dd>
+				</dl>
+			</div>
+		</div>
+	</div>
+</div>
+```
+
+```html
+<div class="infobox-container">
+	<div class="infobox">
+		<div class="heading">
+			<h2>TITLE</h2>
+		</div>
+		<img src="IMAGE_PATH" alt="ALT_TEXT" class="infobox-img">
+		<div class="infobox-group">
+			<div class="heading">
+				<h3>CATEGORY</h3>
+			</div>
+			<div class="infobox-data">
+				<div class="infobox-datarow">
+					<p class="data-heading">HEADING</p>
+					<ul class="data-content">
+						<li>CONTENT</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+```
+
+The heading element can only be inserted once per info box, but all other elements can be inserted repeatedly.
 
 ### References
 
@@ -815,7 +886,7 @@ Raw HTML is inserted directly into the compiled document.
 
 ### Macros
 
-A macro is a statement that is evaluated and expanded into the resulting document. Macros must begin with an alphabetic character and can only contain alphanumeric characters or underscores.
+Tokens that begin with a percentage symbol (`%`) are evaluated at compile time. Most of these tokens are macros, statements that are evaluated and expanded into the document. Macros must begin with an alphabetic character and can only contain alphanumeric characters or underscores. `%variable` is a variable, with a determinate value, while `%function()` is a function that will be evaluated based on its parameters. Functions and variables can be defined anywhere in a file, but must be defined before they are used.
 
 Macros return in two ways. They are either assigned to other macros (`%var = %val`), or inserted at the location that they are called (`%var`).
 
@@ -851,7 +922,7 @@ Primarily used for dynamic, repetitive, and often-changing content.
 }
 ```
 
-TODO: Choose or design a language for the macros.
+TODO: Choose or design a language for the macros. The scripting syntax for these functions and variables should be as C-like as possible.
 
 ### Built-In Macros
 
