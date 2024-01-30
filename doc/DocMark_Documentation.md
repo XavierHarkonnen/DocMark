@@ -736,28 +736,6 @@ HEADING
 				<h3>CATEGORY</h3>
 			</div>
 			<div class="infobox-data">
-				<dl class="infobox-datarow">
-						<dt>HEADING</dt>
-						<dd>CONTENT</dd>
-				</dl>
-			</div>
-		</div>
-	</div>
-</div>
-```
-
-```html
-<div class="infobox-container">
-	<div class="infobox">
-		<div class="heading">
-			<h2>TITLE</h2>
-		</div>
-		<img src="IMAGE_PATH" alt="ALT_TEXT" class="infobox-img">
-		<div class="infobox-group">
-			<div class="heading">
-				<h3>CATEGORY</h3>
-			</div>
-			<div class="infobox-data">
 				<div class="infobox-datarow">
 					<p class="data-heading">HEADING</p>
 					<ul class="data-content">
