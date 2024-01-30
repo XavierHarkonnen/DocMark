@@ -1,39 +1,113 @@
-# Summary Text
+# Infoboxes
 
+DocMark:
+
+```
+[[
+## TITLE
+[ALT_TEXT](IMAGE_PATH)
+### HEADING
+CATEGORY
+- CONTENT
+]]
+```
+
+HTML:
+
+```html
 <div class="infobox-container">
 	<div class="infobox">
 		<div class="heading">
 			<h2>TITLE</h2>
 		</div>
-		<img src="../Images/placeholder.jpg" class="infobox-img">
+		<img src="IMAGE_PATH" alt="ALT_TEXT" class="infobox-img">
 		<div class="infobox-group">
 			<div class="heading">
-				<h3>CATEGORY</h3>
+				<h3>HEADING</h3>
 			</div>
 			<div class="infobox-data">
 				<div class="infobox-datarow">
-					<p class="data-heading">CLASS</p>
+					<p class="data-heading">CATEGORY</p>
 					<ul class="data-content">
-						<li>ITEM</li>
+						<li>CONTENT</li>
 					</ul>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
+```
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+Unique elements can only be inserted once per infobox. Generic elements can be inserted any number of times, but only within their containing element.
 
-## Subtitle
+## Opener (`[[`)
 
-Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
+Unique
 
-## Subtitle
+```html
+<div class="infobox-container">
+<div class="infobox">
+```
 
-Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur? Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?
+## Title (`## TITLE`)
 
-## Subtitle
+Unique
 
-Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?
+```html
+<div class="heading">
+<h2>TITLE</h2>
+</div>
+```
 
-Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?
+## Image (`[ALT_TEXT](IMAGE_PATH)`)
+
+Generic within main body.
+
+```html
+<img src="IMAGE_PATH" alt="ALT_TEXT" class="infobox-img">
+```
+
+## Category (`### CATEGORY`)
+
+Generic within main body.
+
+```html
+<div class="infobox-group">
+<div class="heading">
+<h3>CATEGORY</h3>
+</div>
+<!--INSERT HEADING HERE-->
+</div>
+```
+
+## Heading (`HEADING`)
+
+Generic within category.
+
+```html
+<div class="infobox-data">
+<div class="infobox-datarow">
+<p class="data-heading">HEADING</p>
+<ul class="data-content">
+	<!--INSERT CONTENT HERE-->
+</ul>
+</div>
+</div>
+```
+
+## Content (`- CONTENT`)
+
+Generic within heading.
+
+```html
+<li>CONTENT</li>
+```
+
+## Closer (`]]`)
+
+Unique.
+
+```html
+</div>
+</div>
+```

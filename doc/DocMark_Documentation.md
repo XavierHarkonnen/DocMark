@@ -687,8 +687,8 @@ Lorem ipsum dolor sit amet, ...
 
 ```html
 <div class="column-box">
-	<div class="column">Lorem ipsum dolor sit amet, ...</div>
-	<div class="column">Lorem ipsum dolor sit amet, ...</div>
+<div class="column">Lorem ipsum dolor sit amet, ...</div>
+<div class="column">Lorem ipsum dolor sit amet, ...</div>
 </div>
 ```
 
@@ -718,8 +718,8 @@ TODO
 [[
 ## TITLE
 [ALT_TEXT](IMAGE_PATH)
-### CATEGORY
-HEADING
+### HEADING
+CATEGORY
 - CONTENT
 ]]
 ```
@@ -733,11 +733,11 @@ HEADING
 		<img src="IMAGE_PATH" alt="ALT_TEXT" class="infobox-img">
 		<div class="infobox-group">
 			<div class="heading">
-				<h3>CATEGORY</h3>
+				<h3>HEADING</h3>
 			</div>
 			<div class="infobox-data">
 				<div class="infobox-datarow">
-					<p class="data-heading">HEADING</p>
+					<p class="data-heading">CATEGORY</p>
 					<ul class="data-content">
 						<li>CONTENT</li>
 					</ul>
