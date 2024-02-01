@@ -175,6 +175,10 @@ means that `src` uses the first null-terminated string in the attribute array, `
 
 The attribution specification also indicates how global flags are used in combination with strings in the attribute array. Global flags will also be enclosed in curly brackets.
 
+```
+href="{header_identifier}-footnote-{1}"
+```
+
 ### Root
 
 The `ROOT` token is the base of the document. Before the recursive lexing takes place, the entire document is be assigned as the data field of the `ROOT` token. Recursive lexing starts at the `ROOT` token, and ends when the `ROOT` token has been marked as `RAW`.
