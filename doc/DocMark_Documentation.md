@@ -31,7 +31,7 @@ Consider adding a brief introductory section at the beginning that provides a hi
 		- [Lists](#lists)
 			- [Ordered Lists](#ordered-lists)
 			- [Unordered Lists](#unordered-lists)
-			- [Definition Lists](#definition-lists)
+			- [Description Lists](#description-lists)
 		- [Code](#code)
 			- [Inline Code](#inline-code)
 			- [Code Blocks](#code-blocks)
@@ -181,7 +181,7 @@ Lorem ipsum dolor sit amet...
 
 becomes
 
-```
+```html
 <p>
 	Lorem ipsum dolor sit amet...<br>
 	Lorem ipsum dolor sit amet...
@@ -197,7 +197,7 @@ Lorem ipsum dolor sit amet...
 
 becomes
 
-```
+```html
 <p class="indented">Lorem ipsum dolor sit amet...</p>
 <p>Lorem ipsum dolor sit amet...</p>
 ```
@@ -248,7 +248,7 @@ Blockquotes can also be nested by stacking greater-than symbols..
 >> Lorem ipsum dolor sit amet...
 ```
 
-```
+```html
 <blockquote>
 Lorem ipsum dolor sit amet...<br>
 Lorem ipsum dolor sit amet...
@@ -275,7 +275,7 @@ Ordered lists are used to list items when there is a need to refer to items by n
 3. Third item
 ```
 
-```
+```html
 <ol>
   <li>First item</li>
   <li>Second item</li>
@@ -297,7 +297,7 @@ Unordered lists are used to list items when the order and number of the list ite
 - Third item
 ```
 
-```
+```html
 <ul>
   <li>First item</li>
   <li>Second item</li>
@@ -308,25 +308,25 @@ Unordered lists are used to list items when the order and number of the list ite
 </ul>
 ```
 
-#### Definition Lists
+#### Description Lists
 
-Definition lists are used to list a series of matches between keywords and definitions.
-
-```
-Term 1
-: Definition 1
-Term 2
-: Definition 2.1
-: Definition 2.2
-```
+Description lists are used to list a series of matches between keywords and values.
 
 ```
+Key 1
+: Value 1
+Key 2
+: Value 2.1
+: Value 2.2
+```
+
+```html
 <dl>
-  <dt>Term 1</dt>
-  <dd>Definition 1</dd>
-  <dt>Term 2</dt>
-  <dd>Definition 2.1</dd>
-  <dd>Definition 2.2</dd>
+  <dt>Key 1</dt>
+  <dd>Value 1</dd>
+  <dt>Key 2</dt>
+  <dd>Value 2.1</dd>
+  <dd>Value 2.2</dd>
 </dl>
 ```
 
@@ -350,7 +350,7 @@ int main() {
 ``
 ```
 
-```
+```html
 <pre>
 int main() {
 	return 0;
@@ -376,7 +376,7 @@ To create a link, enclose the link text in brackets and follow it immediately wi
 [example](https://example.com/)
 ```
 
-```
+```html
 <a href="https://example.com/">example</a>
 ```
 
@@ -398,7 +398,7 @@ and
 
 are valid syntax, and both will produce this HTML:
 
-```
+```html
 <img src="example.png" alt="example" title="title">
 ```
 
@@ -424,7 +424,7 @@ MP3, WAV, and OGG.
 ![alt text](example.mp3 "title"; audio/mp3)
 ```
 
-```
+```html
 <audio controls title="title">
   <source src="example.mp3" type="audio/mp3">
 alt text
@@ -437,7 +437,7 @@ alt text
 ![alt text](example.mp4 "title"; video/mp4)
 ```
 
-```
+```html
 <video title="title">
   <source src="example.mp4" type="video/mp4">
 alt text
@@ -771,7 +771,7 @@ Lorem ipsum[^1] dolor sit[^2] amet...
 ### Subsection 1
 ```
 
-```
+```html
 <h2>Section 1</h2>
 
 <p>Lorem ipsum<sup><a href="#section-1-footnote-1">1</a></sup> dolor sit<sup><a href="#section-1-footnote-2">2</a></sup> amet...</p>
@@ -804,7 +804,7 @@ Lorem ipsum[_1] dolor sit[_2] amet...
 [_2]: Endnote 2
 ```
 
-```
+```html
 <h1>Title</h1>
 
 <p>Lorem ipsum<sup><a href="#endnote-1">[1]</a></sup> dolor sit<sup><a href="#section-1-footnote-2">[2]</a></sup> amet...</p>
@@ -835,7 +835,7 @@ Math can be rendered inline with the surrounding text if it is placed between pa
 An equation: $ y=x^2 $
 ```
 
-```
+```html
 
 ```
 
@@ -851,7 +851,7 @@ TODO: Way out there
 
 TODO
 
-```
+```html
 <details>
 	<summary>Title</summary>
 	Content

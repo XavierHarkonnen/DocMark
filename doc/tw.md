@@ -1,27 +1,13 @@
-<style>
-.header {
-  border-bottom: 2px solid black; /* Set your desired border style */
-  display: inline-block; /* Ensures the border only extends as far as the content */
-}
+# Compilation Steps
 
-.float-left {
-  float: left;
-  margin: 10px;
-}
+## Preprocessing
 
-.content::after {
-  content: ''; /* Create a pseudo-element */
-  display: table; /* Ensures it becomes a block-level element */
-  clear: both; /* Clear floats to ensure it starts below floating elements */
-}
+## Lexical Analysis
 
-</style>
+## Macro Expansion
 
-<div class="float-right">
-  floating element
-</div>
+## Semantic Parsing
 
-<div class="content">
-  <h2 class="header">Your Header Here</h2>
-  <p>Your text content here.</p>
-</div>
+## Compilation
+
+## Linking
