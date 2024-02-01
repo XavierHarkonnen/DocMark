@@ -705,12 +705,15 @@ The indentation is handled by CSS, but by default should look like this:
 TODO
 
 ```
-[[
-## TITLE
+[[ TITLE
+
 [ALT_TEXT](IMAGE_PATH)
+
 ### HEADING
+
 CATEGORY
-- CONTENT
+: CONTENT
+
 ]]
 ```
 
@@ -738,7 +741,7 @@ CATEGORY
 </div>
 ```
 
-The heading element can only be inserted once per info box, but all other elements can be inserted repeatedly.
+The TITLE element can only be inserted once per info box, but all other elements can be inserted repeatedly.
 
 ### References
 

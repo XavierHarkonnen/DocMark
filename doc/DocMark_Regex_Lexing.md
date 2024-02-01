@@ -38,12 +38,12 @@ Tokens are recursively scanned for internal syntax.
 	- [Images](#images)
 	- [Audio](#audio)
 	- [Video](#video)
+	- [Tables](#tables)
+	- [Columns](#columns)
+	- [Infoboxes](#infoboxes)
 	- [](#)
 	- [](#-1)
 	- [](#-2)
-	- [](#-3)
-	- [](#-4)
-	- [](#-5)
 	- [Macros](#macros)
 		- [Variable Definitions](#variable-definitions)
 		- [Variable Returns](#variable-returns)
@@ -79,6 +79,11 @@ typedef enum TokenType {
 	IMAGE,
 	AUDIO,
 	VIDEO,
+
+	TOP_TITLED_TABLE,
+	LEFT_TITLED_TABLE,
+	TWO_WAY_TABLE,
+
 	VARIABLE_DEFINITION,
 	VARIABLE_RETURN,
 	FUNCTION_DEFINITION,
@@ -522,7 +527,7 @@ Attribute used for: `src="{1}" title="{2}" type="{3}"`
 Allowed Internal Tokens:
 - Emphasis
 
-##
+## Tables
 
 ```regex
 
@@ -537,35 +542,46 @@ Attribute used for: ``
 Allowed Internal Tokens:
 - Emphasis
 
-## 
+## Columns
 
 ```regex
-
+^\[\|\n([\s\S]*?)\n^\|\|\n([\s\S]*?)\n^\|\]
 ```
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `` | `` | `` | `` |
-
-Attribute used for: ``
+| `LEFT_COLUMN` | `group(1)` | `N/A` | `N/A` |
+| `RIGHT_COLUMN` | `group(2)` | `N/A` | `N/A` |
 
 Allowed Internal Tokens:
-- Emphasis
+- Everything except columns and infoboxes are valid
 
-## 
+## Infoboxes
 
 ```regex
-
+^\[\[(?:$|[^\S\n]+(.*?)[^\S\n]*$)\n([\s\S]*)\n^\]\]
 ```
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `` | `` | `` | `` |
+| `INFOBOX_TITLE` | `group(1)` | `N/A` | `N/A` |
+| `INFOBOX_CONTENT` | `group(2)` | `N/A` | `N/A` |
 
 Attribute used for: ``
 
-Allowed Internal Tokens:
+Allowed Internal Tokens (`INFOBOX_TITLE`):
 - Emphasis
+- Links
+
+Allowed Internal Tokens (`INFOBOX_CONTENT`):
+- Emphasis
+- Images
+- Audio
+- Video
+- Headings (only of rank 3)
+- Description Lists
+
+The infobox classes are applied to all children of the infobox
 
 ## 
 
