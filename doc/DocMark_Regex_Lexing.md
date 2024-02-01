@@ -8,12 +8,13 @@ Tokens are recursively scanned for internal syntax.
 	- [Table of Contents](#table-of-contents)
 	- [Tokens](#tokens)
 	- [Context Sensitivity and Flags](#context-sensitivity-and-flags)
+	- [Data vs Attribute Field](#data-vs-attribute-field)
 	- [Empty Line](#empty-line)
 	- [Escaped Characters](#escaped-characters)
 	- [Heading](#heading)
 		- [Heading with Identifier](#heading-with-identifier)
 	- [Italic](#italic)
-		- [Italics containing Bold](#italics-containing-bold)
+		- [Italic containing Bold](#italic-containing-bold)
 	- [Bold](#bold)
 		- [Bold containing Italic](#bold-containing-italic)
 	- [Underline](#underline)
@@ -30,9 +31,25 @@ Tokens are recursively scanned for internal syntax.
 		- [Description List](#description-list)
 			- [First Key and Value](#first-key-and-value)
 			- [Subsequent Value](#subsequent-value)
-			- [Inline Code](#inline-code)
+	- [Inline Code](#inline-code)
 	- [Code Blocks](#code-blocks)
-		- [Horizontal Rules](#horizontal-rules)
+	- [Horizontal Rules](#horizontal-rules)
+	- [Links](#links)
+	- [Images](#images)
+	- [Audio](#audio)
+	- [Video](#video)
+	- [](#)
+	- [](#-1)
+	- [](#-2)
+	- [](#-3)
+	- [](#-4)
+	- [](#-5)
+	- [Macros](#macros)
+		- [Variable Definitions](#variable-definitions)
+		- [Variable Returns](#variable-returns)
+		- [Function Definitions](#function-definitions)
+		- [Function Returns](#function-returns)
+		- [Built-In Variable Definitions](#built-in-variable-definitions)
 
 ## Tokens
 
@@ -56,6 +73,15 @@ typedef enum TokenType {
 	INLINE_CODE,
 	CODE_BLOCK,
 	HORIZONTAL_RULE,
+	LINK,
+	IMAGE,
+	AUDIO,
+	VIDEO,
+	MACRO_VARIABLE_DEFINITION,
+	MACRO_VARIABLE_RETURN,
+	MACRO_FUNCTION_DEFINITION,
+	MACRO_FUNCTION_RETURN,
+	MACRO_BUILT_IN_RETURN,
 } TokenType;
 
 typedef struct Token {
@@ -81,6 +107,20 @@ Some elements are context sensitive, and require setting and reading flags to de
 | list rank |  |
 | definition list |  |
 |  |  |
+
+## Data vs Attribute Field
+
+The data field is for data that can be further tokenized, while the attribute field is for raw data that is used to modify the presentation of the data in the data field.
+
+The number of captured groups is always known for each token type, so multiple different captures can be stored in the same character array separated by null terminators. Only fill the attribute field in this way.
+
+When a section specifies what its attribute is used for, the number enclosed in curly brackets refers to the order of the string in the attribute array, NOT the capture group. for instance,
+
+```
+src="{1}" title="{2}" type="{3}"
+```
+
+means that src is the first null-terminated string in the attribute array, title is the second, and type is the third, even though src is the second capture, title is the third, and type is the fourth for that token.
 
 ## Empty Line
 
@@ -116,8 +156,6 @@ Order this **LAST**
 |:-:|:-:|:-:|:-:|
 | `HEADING` | `group(2)` | `N/A` | `length(group(1)` |
 
-Attribute used for: `id="{}"`
-
 Allowed Internal Tokens:
 - Emphasis
 - Links
@@ -131,6 +169,8 @@ Allowed Internal Tokens:
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
 | `HEADING` | `group(2)` | `group(3)` | `length(group(1)` |
+
+Attribute used for: `id="{1}"`
 
 Allowed Internal Tokens:
 - Emphasis
@@ -150,7 +190,7 @@ Allowed Internal Tokens:
 - Emphasis (not italic, bold)
 - Links
 
-### Italics containing Bold
+### Italic containing Bold
 
 ```regex
 (?<!\\)\*((?:|\S.*?)(?<!\\)\*\*(?:[^\s\*]|[^\s\*].*?[^\s\*])(?<!\\)\*\*(?:|.*?\S))(?<!\\)\*
@@ -354,13 +394,13 @@ Allowed Internal Tokens:
 Set description list flag to 1.
 
 ```regex
-^([^\s:].*)\n(?:([^\S\n]*):[^\S\n](.*))
+^([^\s:].*)\n:[^\S\n]+(.*)
 ```
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
 | `DESCRIPTION_LIST_KEY` | `group(1)` | `N/A` | `N/A` |
-| `DESCRIPTION_LIST_VALUE` | `` | `N/A` | `N/A` |
+| `DESCRIPTION_LIST_VALUE` | `group(2)` | `N/A` | `N/A` |
 
 Allowed Internal Tokens:
 - Emphasis
@@ -370,7 +410,7 @@ Allowed Internal Tokens:
 If description list flag is 1, render as description list value. If not, render as paragraph.
 
 ```regex
-^(:[^\S\n]*[^\S\n](.*))
+^(:[^\S\n]+(.*))
 ```
 
 | type | data | attribute | rank |
@@ -382,7 +422,7 @@ If description list flag is 1, render as description list value. If not, render 
 Allowed Internal Tokens:
 - Emphasis
 
-#### Inline Code
+## Inline Code
 
 ```regex
 (?<!\\)`(.+?)(?<!\\)`
@@ -390,7 +430,7 @@ Allowed Internal Tokens:
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `CODE_BLOCK` | `group(1)` | `N/A` | `N/A` |
+| `INLINE_CODE` | `group(1)` | `N/A` | `N/A` |
 
 ## Code Blocks
 
@@ -402,9 +442,9 @@ Allowed Internal Tokens:
 |:-:|:-:|:-:|:-:|
 | `CODE_BLOCK` | `group(2)` | `group(1)` | `N/A` |
 
-Attribute used for: `class="language-{}"`
+Attribute used for: `class="language-{1}"`
 
-### Horizontal Rules
+## Horizontal Rules
 
 ```regex
 ^---+$
@@ -416,3 +456,234 @@ Attribute used for: `class="language-{}"`
 
 Allowed Internal Tokens:
 - N/A
+
+## Links
+
+```regex
+(?<![\\!])\[[^\S\n]*(\S.*?)[^\S\n]*(?<!\\)\]\([^\S\n]*(\S*?)(?:|[^\S\n]+"(.*?)")[^\S\n]*(?<!\\)\)
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `LINK` | `group(1)` | `group(2), group(3)` | `N/A` |
+
+Attribute used for: `href="{1}" title="{2}"`
+
+Allowed Internal Tokens:
+- Emphasis
+- Images
+
+## Images
+
+```regex
+(?<!\\)!\[[^\S\n]*(\S.*?)[^\S\n]*(?<!\\)\]\([^\S\n]*(\S*?)(?:|[^\S\n]+"(.*?)(?<!\\)")[^\S\n]*(?<!\\)\)
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `IMAGE` | `group(1)` | `group(2), group(3)` | `N/A` |
+
+Attribute used for: `src="{1}" title="{2}"`
+
+Allowed Internal Tokens:
+- Emphasis
+
+## Audio
+
+```regex
+(?<!\\)!\[[^\S\n]*(\S.*?)[^\S\n]*(?<!\\)\]\([^\S\n]*(\S*?)(?:|[^\S\n]+"(.*?)(?<!\\)")[^\S\n]*;[^\S\n]*(audio\/(?:mp3|wav|ogg))[^\S\n]*(?<!\\)\)
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `AUDIO` | `group(1)` | `group(2), group(3), group(4)` | `N/A` |
+
+Attribute used for: `src="{1}" title="{2}" type="{3}"`
+
+Allowed Internal Tokens:
+- Emphasis
+
+## Video
+
+```regex
+(?<!\\)!\[[^\S\n]*(\S.*?)[^\S\n]*(?<!\\)\]\([^\S\n]*(\S*?)(?:|[^\S\n]+"(.*?)(?<!\\)")[^\S\n]*;[^\S\n]*(video\/(?:mp4|webm|ogg))[^\S\n]*(?<!\\)\)
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `VIDEO` | `group(1)` | `group(2), group(3), group(4)` | `N/A` |
+
+Attribute used for: `src="{1}" title="{2}" type="{3}"`
+
+Allowed Internal Tokens:
+- Emphasis
+
+##
+
+```regex
+
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `` | `` | `` | `` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- Emphasis
+
+## 
+
+```regex
+
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `` | `` | `` | `` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- Emphasis
+
+## 
+
+```regex
+
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `` | `` | `` | `` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- Emphasis
+
+## 
+
+```regex
+
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `` | `` | `` | `` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- Emphasis
+
+## 
+
+```regex
+
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `` | `` | `` | `` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- Emphasis
+
+## 
+
+```regex
+
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `` | `` | `` | `` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- Emphasis
+
+## Macros
+
+### Variable Definitions
+
+```regex
+^%([A-Za-z][A-Za-z0-9_]*?)[^\S\n]*=[^\S\n]*(.*)
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `MACRO_VARIABLE_DEFINITION` | `group(2)` | `group(1)` | `N/A` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- Emphasis
+
+### Variable Returns
+
+```regex
+\s%([A-Za-z][A-Za-z0-9_]*?)\s
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `MACRO_VARIABLE_RETURN` | `N\A` | `group(1)` | `N/A` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- Emphasis
+
+### Function Definitions
+
+TODO: Incomplete; allow passing literal parameters inside of quotes
+
+```regex
+^%([A-Za-z][A-Za-z0-9_]*?)\([^\S\n]*(|[^\s\(\),\\]+[^\S\n]*(?:,[^\S\n]*[^\s\(\),\\]+[^\S\n]*)*)(?<!\\)\)[^\S\n]*{([\S\s]*?)(?<!\\)}
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `MACRO_FUNCTION_DEFINITION` | `group(3)` | `group(1), group(2)` | `` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- Emphasis
+
+
+### Function Returns
+
+```regex
+\s%([A-Za-z][A-Za-z0-9_]*?)\([^\S\n]*(|[^\s\(\),\\]+[^\S\n]*(?:,[^\S\n]*[^\s\(\),\\]+[^\S\n]*)*)(?<!\\)\)\s
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `MACRO_FUNCTION_RETURN` | `N\A` | `group(1), group(2)` | `N/A` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- Emphasis
+
+### Built-In Variable Definitions
+
+```regex
+^%_([A-Za-z][A-Za-z0-9_]*?)[^\S\n]*=[^\S\n]*(.*)
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `MACRO_VARIABLE_DEFINITION` | `group(2)` | `group(1)` | `N/A` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- Emphasis

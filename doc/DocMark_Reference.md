@@ -384,25 +384,13 @@ To create a link, enclose the link text in brackets and follow it immediately wi
 
 #### Images
 
-Both
-
 ```
 ![alt text](example.png "title")
 ```
 
-and
-
-```
-![alt text](example.png "title"; image/png)
-```
-
-are valid syntax, and both will produce this HTML:
-
 ```html
 <img src="example.png" alt="example" title="title">
 ```
-
-The addition of `; image/png` only serves to make the DocMark  syntax more consistent with other forms of media, but it is not mandatory.
 
 ##### Linking Images
 
@@ -418,7 +406,7 @@ The addition of `; image/png` only serves to make the DocMark  syntax more consi
 
 #### Audio
 
-MP3, WAV, and OGG.
+Supports .mp3, .wav, and .ogg.
 
 ```
 ![alt text](example.mp3 "title"; audio/mp3)
@@ -432,6 +420,8 @@ alt text
 ```
 
 #### Video
+
+Supports .mp4, .webm, and .ogg.
 
 ```
 ![alt text](example.mp4 "title"; video/mp4)
