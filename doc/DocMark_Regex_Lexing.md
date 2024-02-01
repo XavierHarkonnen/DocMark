@@ -44,10 +44,8 @@ Tokens are recursively scanned for internal syntax.
 	- [References](#references)
 		- [Footnote References](#footnote-references)
 		- [Footnote Notes](#footnote-notes)
-	- [Allowed Internal Tokens:](#allowed-internal-tokens)
 		- [Endnote References](#endnote-references)
 		- [Endnote Notes](#endnote-notes)
-	- [Allowed Internal Tokens:](#allowed-internal-tokens-1)
 	- [](#)
 	- [Macros](#macros)
 		- [Variable Definitions](#variable-definitions)
@@ -93,6 +91,10 @@ typedef enum TokenType {
 	RIGHT_COLUMN,
 	INFOBOX_TITLE,
 	INFOBOX_CONTENT,
+	FOOTNOTE_REFERENCE,
+	FOOTNOTE_NOTE,
+	ENDNOTE_REFERENCE,
+	ENDNOTE_NOTE,
 
 	VARIABLE_DEFINITION,
 	VARIABLE_RETURN,
@@ -601,7 +603,7 @@ The infobox classes are applied to all children of the infobox
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `` | `` | `` | `` |
+| `FOOTNOTE_REFERENCE` | `` | `` | `` |
 
 Attribute used for: ``
 
@@ -616,12 +618,12 @@ Allowed Internal Tokens:
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `` | `` | `` | `` |
+| `FOOTNOTE_NOTE` | `` | `` | `` |
 
 Attribute used for: ``
 
 Allowed Internal Tokens:
-- 
+- TODO
 
 ### Endnote References
 
@@ -631,7 +633,7 @@ Allowed Internal Tokens:
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `` | `` | `` | `` |
+| `ENDNOTE_REFERENCE` | `` | `` | `` |
 
 Attribute used for: ``
 
@@ -646,12 +648,12 @@ Allowed Internal Tokens:
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `` | `` | `` | `` |
+| `ENDNOTE_NOTE` | `` | `` | `` |
 
 Attribute used for: ``
 
 Allowed Internal Tokens:
-- 
+- TODO
 
 ## 
 
