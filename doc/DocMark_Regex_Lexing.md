@@ -165,13 +165,15 @@ The `data` field is for data that can be further tokenized, while the `attribute
 
 The number of captured groups is always known for each token type, and captures are always entered into the same field for the same token. As such, multiple different captures can be stored in the same character array if they are separated by null terminators. Only the `attribute` field should be filled this way; the `data` field should only ever contain a single string.
 
-When a section specifies what its attribute is used for, the number enclosed in curly brackets refers to the order of the string in the attribute array, **NOT** the regex capture group. For instance,
+When a section specifies what its attribute is used for, the number enclosed in curly brackets (`{}`) refers to the order of the string in the attribute array, **NOT** the regex capture group. For instance,
 
 ```
 src="{1}" title="{2}" type="{3}"
 ```
 
 means that `src` uses the first null-terminated string in the attribute array, `title` uses the second, and `type` uses the third, even though `src` actually uses the second regex capture, `title` uses the third, and `type` uses the fourth.
+
+The attribution specification also indicates how global flags are used in combination with strings in the attribute array. Global flags will also be enclosed in curly brackets.
 
 ### Root
 
