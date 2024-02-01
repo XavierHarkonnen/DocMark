@@ -42,8 +42,6 @@ Tokens are recursively scanned for internal syntax.
 	- [Columns](#columns)
 	- [Infoboxes](#infoboxes)
 	- [](#)
-	- [](#-1)
-	- [](#-2)
 	- [Macros](#macros)
 		- [Variable Definitions](#variable-definitions)
 		- [Variable Returns](#variable-returns)
@@ -572,8 +570,6 @@ Allowed Internal Tokens:
 | `INFOBOX_TITLE` | `group(1)` | `N/A` | `N/A` |
 | `INFOBOX_CONTENT` | `group(2)` | `N/A` | `N/A` |
 
-Attribute used for: ``
-
 Allowed Internal Tokens (`INFOBOX_TITLE`):
 - Emphasis
 - Links
@@ -583,40 +579,10 @@ Allowed Internal Tokens (`INFOBOX_CONTENT`):
 - Images
 - Audio
 - Video
-- Headings (only of rank 3)
+- Headings (only of level 3)
 - Description Lists
 
 The infobox classes are applied to all children of the infobox
-
-## 
-
-```regex
-
-```
-
-| type | data | attribute | rank |
-|:-:|:-:|:-:|:-:|
-| `` | `` | `` | `` |
-
-Attribute used for: ``
-
-Allowed Internal Tokens:
-- Emphasis
-
-## 
-
-```regex
-
-```
-
-| type | data | attribute | rank |
-|:-:|:-:|:-:|:-:|
-| `` | `` | `` | `` |
-
-Attribute used for: ``
-
-Allowed Internal Tokens:
-- Emphasis
 
 ## 
 
