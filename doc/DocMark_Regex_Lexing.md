@@ -41,6 +41,13 @@ Tokens are recursively scanned for internal syntax.
 	- [Tables](#tables)
 	- [Columns](#columns)
 	- [Infoboxes](#infoboxes)
+	- [References](#references)
+		- [Footnote References](#footnote-references)
+		- [Footnote Notes](#footnote-notes)
+	- [Allowed Internal Tokens:](#allowed-internal-tokens)
+		- [Endnote References](#endnote-references)
+		- [Endnote Notes](#endnote-notes)
+	- [Allowed Internal Tokens:](#allowed-internal-tokens-1)
 	- [](#)
 	- [Macros](#macros)
 		- [Variable Definitions](#variable-definitions)
@@ -583,6 +590,68 @@ Allowed Internal Tokens (`INFOBOX_CONTENT`):
 - Description Lists
 
 The infobox classes are applied to all children of the infobox
+
+## References
+
+### Footnote References
+
+```regex
+\[\^[A-Za-z0-9]*\]
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `` | `` | `` | `` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- None
+
+### Footnote Notes
+
+```regex
+^\[\^[A-Za-z0-9]*\]:.+
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `` | `` | `` | `` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- 
+
+### Endnote References
+
+```regex
+\[_[A-Za-z0-9]*\]
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `` | `` | `` | `` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- None
+
+### Endnote Notes
+
+```regex
+^\[\_[A-Za-z0-9]*\]:.+
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `` | `` | `` | `` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- 
 
 ## 
 
