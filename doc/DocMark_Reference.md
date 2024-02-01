@@ -800,7 +800,7 @@ Lorem ipsum[_1] dolor sit[_2] amet...
 ```html
 <h1>Title</h1>
 
-<p>Lorem ipsum<sup><a href="#endnote-1">[1]</a></sup> dolor sit<sup><a href="#section-1-footnote-2">[2]</a></sup> amet...</p>
+<p>Lorem ipsum<sup><a href="#endnote-1">[1]</a></sup> dolor sit<sup><a href="#endnote-2">[2]</a></sup> amet...</p>
 
 ... Remaining Document ...
 

@@ -598,12 +598,12 @@ The infobox classes are applied to all children of the infobox
 ### Footnote References
 
 ```regex
-\[\^[A-Za-z0-9]*\]
+\[(\^[A-Za-z0-9]*)\]
 ```
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `FOOTNOTE_REFERENCE` | `` | `` | `` |
+| `FOOTNOTE_REFERENCE` | `N/A` | `group(1)` | `N/A` |
 
 Attribute used for: ``
 
@@ -613,44 +613,44 @@ Allowed Internal Tokens:
 ### Footnote Notes
 
 ```regex
-^\[\^[A-Za-z0-9]*\]:.+
+^\[(\^[A-Za-z0-9]*)\]:.+
 ```
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `FOOTNOTE_NOTE` | `` | `` | `` |
+| `FOOTNOTE_NOTE` | `N/A` | `group(1)` | `N/A` |
 
 Attribute used for: ``
 
 Allowed Internal Tokens:
-- TODO
+- N/A
 
 ### Endnote References
 
 ```regex
-\[_[A-Za-z0-9]*\]
+\[(_[A-Za-z0-9]*)\]
 ```
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `ENDNOTE_REFERENCE` | `` | `` | `` |
+| `ENDNOTE_REFERENCE` | `N/A` | `group(1)` | `N/A` |
 
-Attribute used for: ``
+Attribute used for: `href="endnote-{1}"`
 
 Allowed Internal Tokens:
-- None
+- N/A
 
 ### Endnote Notes
 
 ```regex
-^\[\_[A-Za-z0-9]*\]:.+
+^\[(_[A-Za-z0-9]*)\]:.+
 ```
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `ENDNOTE_NOTE` | `` | `` | `` |
+| `ENDNOTE_NOTE` | `N/A` | `group(1)` | `N/A` |
 
-Attribute used for: ``
+Attribute used for: `id="endnote-{1}"`
 
 Allowed Internal Tokens:
 - TODO
