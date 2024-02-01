@@ -4,10 +4,11 @@ This document contains specifications for creating a DocMark-standard compliant 
 
 Tokens are recursively scanned for internal syntax.
 
-## *VALIDATION PROCESS*
+## VALIDATION PROCESS
 
 For the framework, ensure that:
-- Every enumerated TokenType is valid and adheres to standard.
+- Every [enumerated TokenType](#tokens-and-token-types) is valid and adheres to standard.
+- Every [context-sensitivity flag](#context-sensitivity) is valid and adheres to standard.
 
 For each token section, ensure that:
 - An example of the specified token syntax is provided.
@@ -21,26 +22,28 @@ For each token section, ensure that:
 - The `attribute` field is designated to receive only data that does not need to be further lexed.
 - The `rank` field specifies an expression that depends only on valid capture groups OR is marked with `N/A`.
 - The `rank` field specifies an expression that correctly determines the rank of the token.
-- The usage of all elements in the attribute field is specified
+- All fields which contain references to capture groups refer to them as `group(#)`, where the hash (`#`) stands for the order of the group within the `regex`.
+- If the token is context-sensitive:
+  - The manner in which it is context-sensitive is fully explained.
+  - The flags which will be used for determining context are listed.
+  - The flags which will be used for determining context are listed within the flags table of the [Context Sensitivity](#context-sensitivity) section.
+- The usage of all elements in the attribute field is specified <!--TODO-->
+- The tokens which the data section of this token can be lexed for are fully specified.
 - The section is properly formatted for readability.
-
-Allowed Internal Tokens:
-- Emphasis
-- Links
 
 ## Table of Contents
 
 - [DocMark Regex Lexing](#docmark-regex-lexing)
-	- [*VALIDATION PROCESS*](#validation-process)
+	- [VALIDATION PROCESS](#validation-process)
 	- [Table of Contents](#table-of-contents)
-	- [Tokens](#tokens)
+	- [Tokens and Token Types](#tokens-and-token-types)
 		- [`RAW`](#raw)
-	- [Context Sensitivity and Flags](#context-sensitivity-and-flags)
+	- [Context Sensitivity](#context-sensitivity)
 	- [Data vs Attribute Field](#data-vs-attribute-field)
 	- [Root](#root)
 	- [Empty Line](#empty-line)
 	- [Escaped Characters](#escaped-characters)
-	- [Heading](#heading)
+	- [Headings](#headings)
 		- [Heading with Identifier](#heading-with-identifier)
 	- [Italic](#italic)
 		- [Italic containing Bold](#italic-containing-bold)
@@ -59,6 +62,8 @@ Allowed Internal Tokens:
 		- [Unordered List](#unordered-list)
 		- [Description List](#description-list)
 			- [First Key and Value](#first-key-and-value)
+				- [Key](#key)
+				- [Value](#value)
 			- [Subsequent Value](#subsequent-value)
 	- [Inline Code](#inline-code)
 	- [Code Blocks](#code-blocks)
@@ -85,7 +90,7 @@ Allowed Internal Tokens:
 		- [Built-In Variable Returns](#built-in-variable-returns)
 		- [Built-In Function Returns](#built-in-function-returns)
 
-## Tokens
+## Tokens and Token Types
 
 ```C
 typedef enum TokenType {
@@ -159,14 +164,14 @@ All tokens can be *marked* as `RAW`, which is an imperative part of the compilat
 
 To mark a token as `RAW`, it's `type` is negated if it is not already negative. This avoids negating inherently `RAW` tokens, which are already negative. The `RAW_DATA` token `type` is equal to `0`, so negating it has no effect.
 
-## Context Sensitivity and Flags
+## Context Sensitivity
 
 Some elements are context sensitive, and require setting and reading flags to determine their behavior. The specifications for this behavior will be given in any sections where relevant.
 
 | Flags | Usage |
 |:-:|:-:|
-| list rank |  |
-| definition list |  |
+| `list_rank` | integer |
+| `description_list` | boolean |
 |  |  |
 
 ## Data vs Attribute Field
@@ -211,7 +216,21 @@ Order this **LAST**
 |:-:|:-:|:-:|:-:|
 | `RAW_DATA` | `group(1)` | `N/A` | `N/A` |
 
-## Heading
+## Headings
+
+**CONTEXT SENSITIVE**
+
+1. Sets the value of the `header_identifier` flag.
+
+---
+
+Example:
+
+```
+# Heading
+```
+
+Regex:
 
 ```regex
 ^(#{1,6})(?:$|[^\S\n]+(.*?)[^\S\n]*$)
@@ -226,6 +245,14 @@ Allowed Internal Tokens:
 - Links
 
 ### Heading with Identifier
+
+Example:
+
+```
+# Heading {identifier}
+```
+
+Regex:
 
 ```regex
 ^(#{1,6})[^\S\n]+(|\S.*?[^\S\n]+)\{[^\S\n]*([A-Za-z][a-zA-Z0-9-_:\.]*[^\S\n]*)\}
@@ -243,6 +270,14 @@ Allowed Internal Tokens:
 
 ## Italic
 
+Example:
+
+```
+*Italic*
+```
+
+Regex:
+
 ```regex
 (?<!\\)\*(\S.*?\S|\S)(?<!\\)\*
 ```
@@ -256,6 +291,14 @@ Allowed Internal Tokens:
 - Links
 
 ### Italic containing Bold
+
+Example:
+
+```
+*Italic **Bold and Italic***
+```
+
+Regex:
 
 ```regex
 (?<!\\)\*((?:|\S.*?)(?<!\\)\*\*(?:[^\s\*]|[^\s\*].*?[^\s\*])(?<!\\)\*\*(?:|.*?\S))(?<!\\)\*
@@ -271,6 +314,14 @@ Allowed Internal Tokens:
 
 ## Bold
 
+Example:
+
+```
+**Bold**
+```
+
+Regex:
+
 ```regex
 (?<!\\)\*\*(\S.*?\S|\S)(?<!\\)\*\*
 ```
@@ -284,6 +335,14 @@ Allowed Internal Tokens:
 - Links
 
 ### Bold containing Italic
+
+Example:
+
+```
+**Bold *Italic and Bold***
+```
+
+Regex:
 
 ```regex
 (?<!\\)\*\*((?:|\S.*?)(?<!\\)\*(?:[^\s\*]|[^\s\*].*?[^\s\*])(?<!\\)\*(?:|.*?\S))(?<!\\)\*\*
@@ -299,6 +358,14 @@ Allowed Internal Tokens:
 
 ## Underline
 
+Example:
+
+```
+~Underline~
+```
+
+Regex:
+
 ```regex
 (?<!\\)~(\S.*?\S|\S)(?<!\\)~
 ```
@@ -312,6 +379,14 @@ Allowed Internal Tokens:
 - Links
 
 ### Underline containing Strikethrough
+
+Example:
+
+```
+~Underline ~~Strikethrough and Underline~~~
+```
+
+Regex:
 
 ```regex
 (?<!\\)~((?:|\S.*?)(?<!\\)~~(?:[^\s~]|[^\s~].*?[^\s~])(?<!\\)~~(?:|.*?\S))(?<!\\)~
@@ -327,6 +402,14 @@ Allowed Internal Tokens:
 
 ## Strikethrough
 
+Example:
+
+```
+~~Strikethrough~~
+```
+
+Regex:
+
 ```regex
 (?<!\\)~~(\S.*?\S|\S)(?<!\\)~~
 ```
@@ -340,6 +423,14 @@ Allowed Internal Tokens:
 - Links
 
 ### Strikethrough containing Underline
+
+Example:
+
+```
+~~Strikethrough ~Underline and Strikethrough~~~
+```
+
+Regex:
 
 ```regex
 (?<!\\)~~((?:|\S.*?)(?<!\\)~(?:[^\s~]|[^\s~].*?[^\s~])(?<!\\)~(?:|.*?\S))(?<!\\)~~
@@ -355,6 +446,14 @@ Allowed Internal Tokens:
 
 ## Highlight
 
+Example:
+
+```
+==Highlight==
+```
+
+Regex:
+
 ```regex
 (?<!\\)==(\S.*?\S|\S)(?<!\\)==
 ```
@@ -368,6 +467,14 @@ Allowed Internal Tokens:
 - Links
 
 ## Superscript
+
+Example:
+
+```
+^Superscript^
+```
+
+Regex:
 
 ```regex
 (?<!\\)\^(\S.*?\S|\S)(?<!\\)\^
@@ -383,6 +490,14 @@ Allowed Internal Tokens:
 
 ## Subscript
 
+Example:
+
+```
+_Subscript_
+```
+
+Regex:
+
 ```regex
 (?<!\\)_(\S.*?\S|\S)(?<!\\)_
 ```
@@ -396,6 +511,14 @@ Allowed Internal Tokens:
 - Links
 
 ## Blockquote
+
+Example:
+
+```
+> Blockquote
+```
+
+Regex:
 
 ```regex
 ^(\>+)[^\S\n]+(.*)
@@ -416,7 +539,22 @@ TODO: define formula to calculate rank of list elements.
 
 **CONTEXT SENSITIVE**
 
-Check if current rank is greater than list rank flag + 1 (default 0). If so, render as indented paragraph. If not, render as ordered list. Set list rank flag to current rank.
+1. Check if `rank` is greater than `list_rank` flag + 1 (default 0).
+2. If so, render as indented paragraph.
+3. If not, render as ordered list.
+1. Set `list_rank` flag to `rank`.
+
+See the Paragraph token section for information on paragraph processing.
+
+---
+
+Example:
+
+```
+1. Ordered List Element
+```
+
+Regex:
 
 ```regex
 ^([^\S\n]*)([0-9]*\.[^\S\n]*(.*))
@@ -425,7 +563,6 @@ Check if current rank is greater than list rank flag + 1 (default 0). If so, ren
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
 | `ORDERED_LIST_ELEMENT` | `group(3)` | `N/A` |  |
-|
 | `INDENTED_PARAGRAPH` | `group(2)` | `N/A` | `N/A` |
 
 Allowed Internal Tokens:
@@ -435,7 +572,22 @@ Allowed Internal Tokens:
 
 **CONTEXT SENSITIVE**
 
-Check if current rank is greater than list rank flag + 1 (default 0). If so, render as indented paragraph. If not, render as unordered list. Set list rank flag to current rank.
+1. Check if `rank` is greater than `list_rank` flag + 1 (default 0).
+2. If so, render as indented paragraph.
+3. If not, render as unordered list.
+1. Set `list_rank` flag to `rank`.
+
+See the Paragraph token section for information on paragraph processing.
+
+---
+
+Example:
+
+```
+- Unordered List Element
+```
+
+Regex:
 
 ```regex
 ^([^\S\n]*)(-[^\S\n]*(.*))
@@ -444,7 +596,6 @@ Check if current rank is greater than list rank flag + 1 (default 0). If so, ren
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
 | `UNORDERED_LIST_ELEMENT` | `group(3)` | `N/A` |  |
-|
 | `INDENTED_PARAGRAPH` | `group(2)` | `N/A` | `N/A` |
 
 Allowed Internal Tokens:
@@ -456,15 +607,36 @@ Allowed Internal Tokens:
 
 **CONTEXT SENSITIVE**
 
-Set description list flag to 1.
+1. Set `description_list` flag to 1.
+
+---
+
+Example:
+
+```
+Key
+: Value
+```
+
+Regex:
 
 ```regex
 ^([^\s:].*)\n:[^\S\n]+(.*)
 ```
 
+##### Key
+
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
 | `DESCRIPTION_LIST_KEY` | `group(1)` | `N/A` | `N/A` |
+
+Allowed Internal Tokens:
+- Emphasis
+
+##### Value
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
 | `DESCRIPTION_LIST_VALUE` | `group(2)` | `N/A` | `N/A` |
 
 Allowed Internal Tokens:
@@ -472,7 +644,22 @@ Allowed Internal Tokens:
 
 #### Subsequent Value
 
-If description list flag is 1, render as description list value. If not, render as paragraph.
+**CONTEXT SENSITIVE**
+
+1. If `description_list` flag is 1, render as description list value.
+2. If not, render as paragraph.
+
+See the Paragraph token section for information on paragraph processing.
+
+---
+
+Example:
+
+```
+: Value
+```
+
+Regex:
 
 ```regex
 ^(:[^\S\n]+(.*))
@@ -481,13 +668,20 @@ If description list flag is 1, render as description list value. If not, render 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
 | `DESCRIPTION_LIST_VALUE` | `group(2)` | `N/A` | `N/A` |
-|
 | `PARAGRAPH` | `group(1)` | `N/A` | `N/A` |
 
 Allowed Internal Tokens:
 - Emphasis
 
 ## Inline Code
+
+Example:
+
+```
+`Inline Code`
+```
+
+Regex:
 
 ```regex
 (?<!\\)`(.+?)(?<!\\)`
@@ -497,7 +691,20 @@ Allowed Internal Tokens:
 |:-:|:-:|:-:|:-:|
 | `INLINE_CODE` | `group(1)` | `N/A` | `N/A` |
 
+Allowed Internal Tokens:
+- None
+
 ## Code Blocks
+
+Example:
+
+```
+``
+Code Block Content
+``
+```
+
+Regex:
 
 ```regex
 ^``(|[A-Za-z0-9]*)\n([\s\S]*?)^``
@@ -509,7 +716,18 @@ Allowed Internal Tokens:
 
 Attribute used for: `class="language-{1}"`
 
+Allowed Internal Tokens:
+- None
+
 ## Horizontal Rules
+
+Example:
+
+```
+---
+```
+
+Regex:
 
 ```regex
 ^---+$
@@ -523,6 +741,14 @@ Allowed Internal Tokens:
 - N/A
 
 ## Links
+
+Example:
+
+```
+[example](https://example.com/)
+```
+
+Regex:
 
 ```regex
 (?<![\\!])\[[^\S\n]*(\S.*?)[^\S\n]*(?<!\\)\]\([^\S\n]*(\S*?)(?:|[^\S\n]+"(.*?)")[^\S\n]*(?<!\\)\)
@@ -540,6 +766,14 @@ Allowed Internal Tokens:
 
 ## Images
 
+Example:
+
+```
+![alt text](example.png "title")
+```
+
+Regex:
+
 ```regex
 (?<!\\)!\[[^\S\n]*(\S.*?)[^\S\n]*(?<!\\)\]\([^\S\n]*(\S*?)(?:|[^\S\n]+"(.*?)(?<!\\)")[^\S\n]*(?<!\\)\)
 ```
@@ -554,6 +788,14 @@ Allowed Internal Tokens:
 - Emphasis
 
 ## Audio
+
+Example:
+
+```
+![alt text](example.mp3 "title"; audio/mp3)
+```
+
+Regex:
 
 ```regex
 (?<!\\)!\[[^\S\n]*(\S.*?)[^\S\n]*(?<!\\)\]\([^\S\n]*(\S*?)(?:|[^\S\n]+"(.*?)(?<!\\)")[^\S\n]*;[^\S\n]*(audio\/(?:mp3|wav|ogg))[^\S\n]*(?<!\\)\)
@@ -570,6 +812,14 @@ Allowed Internal Tokens:
 
 ## Video
 
+Example:
+
+```
+![alt text](example.mp4 "title"; video/mp4)
+```
+
+Regex:
+
 ```regex
 (?<!\\)!\[[^\S\n]*(\S.*?)[^\S\n]*(?<!\\)\]\([^\S\n]*(\S*?)(?:|[^\S\n]+"(.*?)(?<!\\)")[^\S\n]*;[^\S\n]*(video\/(?:mp4|webm|ogg))[^\S\n]*(?<!\\)\)
 ```
@@ -578,12 +828,23 @@ Allowed Internal Tokens:
 |:-:|:-:|:-:|:-:|
 | `VIDEO` | `group(1)` | `group(2), group(3), group(4)` | `N/A` |
 
-Attribute used for: `src="{1}" title="{2}" type="{3}"`
+Attribute used for:`src="{0}" title="{2}" type="{3}"`
 
 Allowed Internal Tokens:
 - Emphasis
 
 ## Tables
+
+TODO
+
+Example:
+
+```
+
+```
+
+Regex:
+
 
 ```regex
 
@@ -600,6 +861,18 @@ Allowed Internal Tokens:
 
 ## Columns
 
+Example:
+
+```
+[|
+Column 1
+||
+Column 2
+|]
+```
+
+Regex:
+
 ```regex
 ^\[\|\n([\s\S]*?)\n^\|\|\n([\s\S]*?)\n^\|\]
 ```
@@ -610,9 +883,19 @@ Allowed Internal Tokens:
 | `RIGHT_COLUMN` | `group(2)` | `N/A` | `N/A` |
 
 Allowed Internal Tokens:
-- Everything except columns and infoboxes are valid
+- Everything except columns and infoboxes
 
 ## Infoboxes
+
+Example:
+
+```
+[[ Title
+Content
+]]
+```
+
+Regex:
 
 ```regex
 ^\[\[(?:$|[^\S\n]+(.*?)[^\S\n]*$)\n([\s\S]*)\n^\]\]
@@ -641,6 +924,18 @@ The infobox classes are applied to all children of the infobox
 
 ### Footnote References
 
+**CONTEXT SENSITIVE**
+
+1. Depends on the value of the `header_identifier` flag.
+
+Example:
+
+```
+[^1]
+```
+
+Regex:
+
 ```regex
 \[(\^[A-Za-z0-9]*)\]
 ```
@@ -649,27 +944,49 @@ The infobox classes are applied to all children of the infobox
 |:-:|:-:|:-:|:-:|
 | `FOOTNOTE_REFERENCE` | `N/A` | `group(1)` | `N/A` |
 
-Attribute used for: ``
+Attribute used for: `href="{header_identifier}-footnote-{1}"`
 
 Allowed Internal Tokens:
 - None
 
 ### Footnote Notes
 
+**CONTEXT SENSITIVE**
+
+1. Depends on the value of the `header_identifier` flag.
+
+---
+
+Example:
+
+```
+[^1]: Footnote
+```
+
+Regex:
+
 ```regex
-^\[(\^[A-Za-z0-9]*)\]:.+
+^\[(\^[A-Za-z0-9]*)\]:[^\S\n](.+)
 ```
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `FOOTNOTE_NOTE` | `N/A` | `group(1)` | `N/A` |
+| `FOOTNOTE_NOTE` | `group(2)` | `group(1)` | `N/A` |
 
-Attribute used for: ``
+Attribute used for: `id="{header_identifier}-footnote-{1}"`
 
 Allowed Internal Tokens:
-- N/A
+- Emphasis
 
 ### Endnote References
+
+Example:
+
+```
+[_1]
+```
+
+Regex:
 
 ```regex
 \[(_[A-Za-z0-9]*)\]
@@ -686,18 +1003,26 @@ Allowed Internal Tokens:
 
 ### Endnote Notes
 
+Example:
+
+```
+[_1]: Endnote
+```
+
+Regex:
+
 ```regex
-^\[(_[A-Za-z0-9]*)\]:.+
+^\[(_[A-Za-z0-9]*)\]:[^\S\n](.+)
 ```
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `ENDNOTE_NOTE` | `N/A` | `group(1)` | `N/A` |
+| `ENDNOTE_NOTE` | `group(2)` | `group(1)` | `N/A` |
 
 Attribute used for: `id="endnote-{1}"`
 
 Allowed Internal Tokens:
-- TODO
+- Emphasis
 
 ## 
 

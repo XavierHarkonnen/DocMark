@@ -665,8 +665,6 @@ Maximum of two columns, no recursive columns.
 
 TODO
 
-DocMark
-
 ```
 [|
 Lorem ipsum dolor sit amet, ...

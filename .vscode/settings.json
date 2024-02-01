@@ -1,0 +1,29 @@
+{
+	"editor.tabSize": 2,
+	"editor.insertSpaces": false,
+	"markdown.styles": [
+		".css/all-variables.css",
+		".css/html-infobox.css",
+		".css/markdown-blockquote.css",
+		".css/markdown-body.css",
+		".css/markdown-code.css",
+		".css/markdown-csp-warning.css",
+		".css/markdown-editor-selection.css",
+		".css/markdown-header.css",
+		".css/markdown-line.css",
+		".css/markdown-link.css",
+		".css/markdown-list.css",
+		".css/markdown-media.css",
+		".css/markdown-paragraph.css",
+		".css/markdown-sup-sub.css",
+		".css/markdown-table.css",
+		".css/markdown-theming.css"
+	],
+	"markdown.preview.typographer": true,
+	"cSpell.words": [
+		"DOCMARK"
+	],
+	"files.associations": {
+		"info.h": "c"
+	}
+}
