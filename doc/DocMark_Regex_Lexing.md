@@ -203,7 +203,9 @@ Some tokens are context sensitive; they will set and/or read global flags to det
 
 **CONTEXT SENSITIVE**
 
-Un-sets all flags.
+Un-sets the `list_rank` and `description_list` flags
+
+---
 
 ```ragel
 ^\s*$
