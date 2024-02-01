@@ -14,8 +14,8 @@ Tokens are recursively scanned for internal syntax.
 	- [Root](#root)
 		- [Raw Tokens](#raw-tokens)
 	- [Context Sensitivity](#context-sensitivity)
-	- [Empty Line](#empty-line)
 	- [Escaped Characters](#escaped-characters)
+	- [Empty Line](#empty-line)
 	- [Headings](#headings)
 		- [Heading with Identifier](#heading-with-identifier)
 	- [Italic](#italic)
@@ -199,23 +199,21 @@ Some tokens are context sensitive; they will set and/or read global flags to det
 | `description_list` | boolean | Determines whether elements of a description list can be added to a description list |
 | `header_identifier` | char * | Stores the header identifier of the current header |
 
-## Empty Line
-
-**CONTEXT SENSITIVE**
-
-Un-sets the `list_rank` and `description_list` flags
-
----
-
-```ragel
-^\s*$
-```
-
 ## Escaped Characters
 
 **IMPORTANT**
 
-Order this **LAST**
+Order this **LAST** in lexing. All regular expressions should properly handle escape codes on their own; this token is just to clean up.
+
+---
+
+Example:
+
+```
+\*
+```
+
+Regex:
 
 ```regex
 (?<!\\)\\(\S)
@@ -224,6 +222,36 @@ Order this **LAST**
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
 | `RAW_DATA` | `group(1)` | `N/A` | `N/A` |
+
+Allowed Internal Tokens:
+- None
+
+## Empty Line
+
+**CONTEXT SENSITIVE**
+
+Un-sets the `list_rank` and `description_list` flags
+
+---
+
+Example:
+
+```
+ 
+```
+
+Regex:
+
+```ragel
+^\s*$
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `RAW_DATA` | `N/A` | `N/A` | `N/A` |
+
+Allowed Internal Tokens:
+- N/A
 
 ## Headings
 
