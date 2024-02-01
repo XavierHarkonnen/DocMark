@@ -234,7 +234,7 @@ Allowed Internal Tokens:
 
 **CONTEXT SENSITIVE**
 
-Un-sets the `list_rank` and `description_list` flags
+Sets the `list_rank` and `description_list` flags to `0`.
 
 ---
 
@@ -261,7 +261,8 @@ Allowed Internal Tokens:
 
 **CONTEXT SENSITIVE**
 
-1. Sets the value of the `header_identifier` flag.
+1. Sets the value of the `header_identifier` flag as the compiler-generated header identifier.
+2. Sets the `list_rank` and `description_list` flags to `0`.
 
 ---
 
@@ -284,8 +285,16 @@ Regex:
 Allowed Internal Tokens:
 - Emphasis
 - Links
+- Inline Code
 
 ### Heading with Identifier
+
+**CONTEXT SENSITIVE**
+
+1. Sets the value of the `header_identifier` flag as the custom header identifier.
+2. Sets the `list_rank` and `description_list` flags to `0`.
+
+---
 
 Example:
 
@@ -308,6 +317,7 @@ Attribute used for: `id="{1}"`
 Allowed Internal Tokens:
 - Emphasis
 - Links
+- Inline Code
 
 ## Italic
 
@@ -330,6 +340,7 @@ Regex:
 Allowed Internal Tokens:
 - Emphasis (not italic, bold)
 - Links
+- Inline Code
 
 ### Italic containing Bold
 
@@ -352,6 +363,7 @@ Regex:
 Allowed Internal Tokens:
 - Emphasis (not italic)
 - Links
+- Inline Code
 
 ## Bold
 
@@ -374,6 +386,7 @@ Regex:
 Allowed Internal Tokens:
 - Emphasis (not italic, bold)
 - Links
+- Inline Code
 
 ### Bold containing Italic
 
@@ -396,6 +409,7 @@ Regex:
 Allowed Internal Tokens:
 - Emphasis (not bold)
 - Links
+- Inline Code
 
 ## Underline
 
@@ -418,6 +432,7 @@ Regex:
 Allowed Internal Tokens:
 - Emphasis (not underline, strikethrough)
 - Links
+- Inline Code
 
 ### Underline containing Strikethrough
 
@@ -440,6 +455,7 @@ Regex:
 Allowed Internal Tokens:
 - Emphasis (not underline)
 - Links
+- Inline Code
 
 ## Strikethrough
 
@@ -462,6 +478,7 @@ Regex:
 Allowed Internal Tokens:
 - Emphasis (not underline, strikethrough)
 - Links
+- Inline Code
 
 ### Strikethrough containing Underline
 
@@ -484,6 +501,7 @@ Regex:
 Allowed Internal Tokens:
 - Emphasis (not strikethrough)
 - Links
+- Inline Code
 
 ## Highlight
 
@@ -506,6 +524,7 @@ Regex:
 Allowed Internal Tokens:
 - Emphasis (not highlight)
 - Links
+- Inline Code
 
 ## Superscript
 
@@ -528,6 +547,7 @@ Regex:
 Allowed Internal Tokens:
 - Emphasis (not superscript)
 - Links
+- Inline Code
 
 ## Subscript
 
@@ -550,6 +570,7 @@ Regex:
 Allowed Internal Tokens:
 - Emphasis (not subscript)
 - Links
+- Inline Code
 
 ## Blockquote
 
@@ -571,6 +592,7 @@ Regex:
 
 Allowed Internal Tokens:
 - Emphasis
+- Inline Code
 
 ## Lists
 
@@ -608,6 +630,7 @@ Regex:
 
 Allowed Internal Tokens:
 - Emphasis
+- Inline Code
 
 ### Unordered List
 
@@ -641,6 +664,7 @@ Regex:
 
 Allowed Internal Tokens:
 - Emphasis
+- Inline Code
 
 ### Description List
 
@@ -648,7 +672,7 @@ Allowed Internal Tokens:
 
 **CONTEXT SENSITIVE**
 
-1. Set `description_list` flag to 1.
+1. Set `description_list` flag to `1`.
 
 ---
 
@@ -682,12 +706,14 @@ Allowed Internal Tokens:
 
 Allowed Internal Tokens:
 - Emphasis
+- Blockquotes
+- Inline Code
 
 #### Subsequent Value
 
 **CONTEXT SENSITIVE**
 
-1. If `description_list` flag is 1, render as description list value.
+1. If `description_list` flag is `1`, render as description list value.
 2. If not, render as paragraph.
 
 See the Paragraph token section for information on paragraph processing.
@@ -713,6 +739,8 @@ Regex:
 
 Allowed Internal Tokens:
 - Emphasis
+- Blockquotes
+- Inline Code
 
 ## Inline Code
 
@@ -804,6 +832,7 @@ Attribute used for: `href="{1}" title="{2}"`
 Allowed Internal Tokens:
 - Emphasis
 - Images
+- Inline Code
 
 ## Images
 
@@ -827,6 +856,7 @@ Attribute used for: `src="{1}" title="{2}"`
 
 Allowed Internal Tokens:
 - Emphasis
+- Inline Code
 
 ## Audio
 
@@ -850,6 +880,7 @@ Attribute used for: `src="{1}" title="{2}" type="{3}"`
 
 Allowed Internal Tokens:
 - Emphasis
+- Inline Code
 
 ## Video
 
@@ -873,6 +904,7 @@ Attribute used for:`src="{0}" title="{2}" type="{3}"`
 
 Allowed Internal Tokens:
 - Emphasis
+- Inline Code
 
 ## Tables
 
@@ -899,6 +931,7 @@ Attribute used for: ``
 
 Allowed Internal Tokens:
 - Emphasis
+- Inline Code
 
 ## Columns
 
@@ -950,6 +983,7 @@ Regex:
 Allowed Internal Tokens (`INFOBOX_TITLE`):
 - Emphasis
 - Links
+- Inline Code
 
 Allowed Internal Tokens (`INFOBOX_CONTENT`):
 - Emphasis
@@ -958,8 +992,9 @@ Allowed Internal Tokens (`INFOBOX_CONTENT`):
 - Video
 - Headings (only of level 3)
 - Description Lists
+- Inline Code
 
-The infobox classes are applied to all children of the infobox
+TODO: note - the infobox classes are applied to all children of the infobox.
 
 ## References
 
@@ -1018,6 +1053,7 @@ Attribute used for: `id="{header_identifier}-footnote-{1}"`
 
 Allowed Internal Tokens:
 - Emphasis
+- Inline Code
 
 ### Endnote References
 
@@ -1064,6 +1100,7 @@ Attribute used for: `id="endnote-{1}"`
 
 Allowed Internal Tokens:
 - Emphasis
+- Inline Code
 
 ## 
 
