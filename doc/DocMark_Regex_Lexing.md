@@ -2,8 +2,6 @@
 
 This document contains specifications for creating a DocMark-standard compliant lexer. The lexer takes a text file as input and outputs a tree of tokens.
 
-Tokens are recursively scanned for internal syntax.
-
 ## Table of Contents
 
 - [DocMark Regex Lexing](#docmark-regex-lexing)
