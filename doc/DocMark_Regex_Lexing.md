@@ -4,43 +4,16 @@ This document contains specifications for creating a DocMark-standard compliant 
 
 Tokens are recursively scanned for internal syntax.
 
-## VALIDATION PROCESS
-
-For the framework, ensure that:
-- Every [enumerated TokenType](#tokens-and-token-types) is valid and adheres to standard.
-- Every [context-sensitivity flag](#context-sensitivity) is valid and adheres to standard.
-
-For each token section, ensure that:
-- An example of the specified token syntax is provided.
-- The `regex` matches all accepted variants of the corresponding element.
-- The `type` field specifies a type that correctly matches the token.
-- The `type` field specifies a type that is in the enumeration of token types.
-- The `data` field corresponds to a single valid capture group OR is marked with `N/A`.
-- The `data` field is designated to receive data that will be subject to further lexing UNLESS the token type is `RAW_DATA`.
-- The `attribute` field corresponds to only valid capture groups OR is marked with `N/A`.
-- The `attribute` field orders multiple capture groups by separating them with a comma and space (`, `).
-- The `attribute` field is designated to receive only data that does not need to be further lexed.
-- The `rank` field specifies an expression that depends only on valid capture groups OR is marked with `N/A`.
-- The `rank` field specifies an expression that correctly determines the rank of the token.
-- All fields which contain references to capture groups refer to them as `group(#)`, where the hash (`#`) stands for the order of the group within the `regex`.
-- If the token is context-sensitive:
-  - The manner in which it is context-sensitive is fully explained.
-  - The flags which will be used for determining context are listed.
-  - The flags which will be used for determining context are listed within the flags table of the [Context Sensitivity](#context-sensitivity) section.
-- The usage of all elements in the attribute field is specified <!--TODO-->
-- The tokens which the data section of this token can be lexed for are fully specified.
-- The section is properly formatted for readability.
-
 ## Table of Contents
 
 - [DocMark Regex Lexing](#docmark-regex-lexing)
-	- [VALIDATION PROCESS](#validation-process)
 	- [Table of Contents](#table-of-contents)
+	- [Validation Process](#validation-process)
 	- [Tokens and Token Types](#tokens-and-token-types)
-		- [`RAW`](#raw)
-	- [Context Sensitivity](#context-sensitivity)
-	- [Data vs Attribute Field](#data-vs-attribute-field)
+		- [Data vs Attribute Field](#data-vs-attribute-field)
 	- [Root](#root)
+		- [Raw Tokens](#raw-tokens)
+	- [Context Sensitivity](#context-sensitivity)
 	- [Empty Line](#empty-line)
 	- [Escaped Characters](#escaped-characters)
 	- [Headings](#headings)
@@ -90,14 +63,47 @@ For each token section, ensure that:
 		- [Built-In Variable Returns](#built-in-variable-returns)
 		- [Built-In Function Returns](#built-in-function-returns)
 
+## Validation Process
+
+For the framework, ensure that:
+- Every [enumerated TokenType](#tokens-and-token-types) is valid and adheres to standard.
+- Every [context-sensitivity flag](#context-sensitivity) is valid and adheres to standard.
+
+For each token section, ensure that:
+- An example of the specified token syntax is provided.
+- The `regex` matches all accepted variants of the corresponding element.
+- The `type` field specifies a type that correctly matches the token.
+- The `type` field specifies a type that is in the enumeration of token types.
+- The `data` field corresponds to a single valid capture group OR is marked with `N/A`.
+- The `data` field is designated to receive data that will be subject to further lexing UNLESS the token type is `RAW_DATA`.
+- The `attribute` field corresponds to only valid capture groups OR is marked with `N/A`.
+- The `attribute` field orders multiple capture groups by separating them with a comma and space (`, `).
+- The `attribute` field is designated to receive only data that does not need to be further lexed.
+- The `rank` field specifies an expression that depends only on valid capture groups OR is marked with `N/A`.
+- The `rank` field specifies an expression that correctly determines the rank of the token.
+- All fields which contain references to capture groups refer to them as `group(#)`, where the hash (`#`) stands for the order of the group within the `regex`.
+- If the token is context-sensitive:
+  - The manner in which it is context-sensitive is fully explained.
+  - The flags which will be used for determining context are listed.
+  - The flags which will be used for determining context are listed within the flags table of the [Context Sensitivity](#context-sensitivity) section.
+- The usage of all elements in the attribute field is specified <!--TODO-->
+- The tokens which the data section of this token can be lexed for are fully specified.
+- The section is properly formatted for readability.
+
 ## Tokens and Token Types
 
 ```C
+#define INT_16_MIN -0x8000
+
 typedef enum TokenType {
+	HORIZONTAL_RULE = INT_16_MIN,
+	FOOTNOTE_REFERENCE,
+	ENDNOTE_REFERENCE,
+
 	RAW_DATA = 0,
+
 	ROOT,
 	HEADING,
-	PARAGRAPH,
 	ITALIC,
 	BOLD,
 	UNDERSCORE,
@@ -112,25 +118,20 @@ typedef enum TokenType {
 	DESCRIPTION_LIST_VALUE,
 	INLINE_CODE,
 	CODE_BLOCK,
-	HORIZONTAL_RULE,
 	LINK,
 	IMAGE,
 	AUDIO,
 	VIDEO,
-
 	TOP_TITLED_TABLE,
 	LEFT_TITLED_TABLE,
 	TWO_WAY_TABLE,
-
 	LEFT_COLUMN,
 	RIGHT_COLUMN,
 	INFOBOX_TITLE,
 	INFOBOX_CONTENT,
-	FOOTNOTE_REFERENCE,
 	FOOTNOTE_NOTE,
-	ENDNOTE_REFERENCE,
 	ENDNOTE_NOTE,
-
+	PARAGRAPH,
 	VARIABLE_DEFINITION,
 	VARIABLE_RETURN,
 	FUNCTION_DEFINITION,
@@ -146,51 +147,57 @@ typedef struct Token {
 	char* attribute;
 	unsigned int rank;
 
-	Token* parent;
-	Token** children;
+	Token *parent;
+	Token **children;
 	size_t num_children;
 } Token;
 ```
 
-All tokens contain a data field and a list of children tokens. After the entire document is parsed, the data field of each individual token is parsed and the resulting tokens are placed into the child field (make sure to free the data field after it is parsed to minimize memory). If a token's data section is parsed and no tokens can be extracted from it, it is placed into a `RAW_DATA` token, which are themselves not parsed (neither are `HORIZONTAL_RULE` tokens). This ensures that the parser will come to the end of the tree.
+All tokens contain a `type` specifier, `data` field, an `attribute` field, and a `rank`. These are used to determine the value of the token.
 
-### `RAW`
+All tokens also contain a pointer to their `parent` token and a pointer to an array of pointers to its `children`. These are used to construct a tree which will be modified throughout lexing and inform the next parsing step.
 
-Tokens that are `RAW` do not contain any data that can be further lexed or otherwise manipulated.
+When the `data` field of a token is lexed, pointers to the resulting tokens will be added to a dynamically allocated array, and the `children` pointer of the current token will be assigned to this array. Each child will also have its `parent` pointer assigned to the address of the current token.
 
-Some tokens are *inherently* `RAW`; these tokens MUST have no child tokens and SHOULD have empty `data` fields. The one exception to the empty-data-field rule for `RAW` tokens is the `RAW_DATA` token, which contains raw data within its data field that will not be further manipulated by any step in compilation.
+The `data` field of the current token will also be freed after lexing to reduce memory requirements.
 
-All tokens can be *marked* as `RAW`, which is an imperative part of the compilation process. After a token is lexed, if did not generate any child tokens, it is marked as `RAW` and the lexer moves back up the token tree to its parent. When the lexer moves up the tree, it checks which of the token's children are marked as `RAW`. If any of the children are not `RAW`, it will move to that child node and lex it recursively until it generates an inherently `RAW` token. Once all of a token's children are `RAW`, it marks the current token as `RAW` and moves up the tree. This process continues until the `ROOT` token is marked as `RAW`, whereupon the lexing ends.
+### Data vs Attribute Field
 
-To mark a token as `RAW`, it's `type` is negated if it is not already negative. This avoids negating inherently `RAW` tokens, which are already negative. The `RAW_DATA` token `type` is equal to `0`, so negating it has no effect.
+The `data` field is for data that can be further tokenized, while the `attribute` field is for raw data that is used to modify the presentation or interpretation of the data in the `data` field. If a section of text will be visible in the final, compiled project, it should not be placed into the `attribute` field.
 
-## Context Sensitivity
+The number of captured groups is always known for each token type, and captures are always entered into the same field for the same token. As such, multiple different captures can be stored in the same character array if they are separated by null terminators. Only the `attribute` field should be filled this way; the `data` field should only ever contain a single string.
 
-Some elements are context sensitive, and require setting and reading flags to determine their behavior. The specifications for this behavior will be given in any sections where relevant.
-
-| Flags | Usage |
-|:-:|:-:|
-| `list_rank` | integer |
-| `description_list` | boolean |
-|  |  |
-
-## Data vs Attribute Field
-
-The data field is for data that can be further tokenized, while the attribute field is for raw data that is used to modify the presentation of the data in the data field.
-
-The number of captured groups is always known for each token type, so multiple different captures can be stored in the same character array separated by null terminators. Only fill the attribute field in this way.
-
-When a section specifies what its attribute is used for, the number enclosed in curly brackets refers to the order of the string in the attribute array, NOT the capture group. for instance,
+When a section specifies what its attribute is used for, the number enclosed in curly brackets refers to the order of the string in the attribute array, **NOT** the regex capture group. For instance,
 
 ```
 src="{1}" title="{2}" type="{3}"
 ```
 
-means that src is the first null-terminated string in the attribute array, title is the second, and type is the third, even though src is the second capture, title is the third, and type is the fourth for that token.
+means that `src` uses the first null-terminated string in the attribute array, `title` uses the second, and `type` uses the third, even though `src` actually uses the second regex capture, `title` uses the third, and `type` uses the fourth.
 
 ## Root
 
 The `ROOT` token is the base of the document. Before the recursive lexing takes place, the entire document is be assigned as the data field of the `ROOT` token. Recursive lexing starts at the `ROOT` token, and ends when the `ROOT` token has been marked as `RAW`.
+
+### Raw Tokens
+
+Tokens that are `RAW` do not contain any data that can be further lexed or otherwise manipulated.
+
+Some tokens are *inherently* `RAW`; these tokens **MUST** have no child tokens and **SHOULD** have empty `data` fields. The one exception to the empty-data-field rule for `RAW` tokens is the `RAW_DATA` token, which contains raw data within its data field that will not be further manipulated by any step in compilation.
+
+All tokens can be *marked* as `RAW`, which is an imperative part of the compilation process. After a token is lexed, if did not generate any child tokens, it is marked as `RAW` and the lexer moves back up the token tree to its parent. When the lexer moves up the tree, it checks which of the token's children are marked as `RAW`. If any of the children are not `RAW`, it will move to that child node and lex it recursively until it generates an inherently `RAW` token. Once all of a token's children are `RAW`, it marks the current token as `RAW` and moves up the tree. This process continues until the `ROOT` token is marked as `RAW`, whereupon the lexing ends.
+
+To mark a token as `RAW`, it's `type` is negated if it is greater than zero. This avoids negating inherently `RAW` tokens, which are already either negative or zero.
+
+## Context Sensitivity
+
+Some tokens are context sensitive; they will set and/or read global flags to determine their own behavior or the behavior of other tokens. The sections of tokens which exhibit content sensitive behavior will begin with an explanation of this behavior and the flags which the token interacts with.
+
+| Flags | Type | Usage |
+|:-:|:-:|:-:|
+| `list_rank` | integer | Defines whether a list of given rank is valid |
+| `description_list` | boolean | Determines whether elements of a description list can be added to a description list |
+| `header_identifier` | char * | Stores the header identifier of the current header |
 
 ## Empty Line
 
