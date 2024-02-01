@@ -50,6 +50,8 @@ Tokens are recursively scanned for internal syntax.
 		- [Function Definitions](#function-definitions)
 		- [Function Returns](#function-returns)
 		- [Built-In Variable Definitions](#built-in-variable-definitions)
+		- [Built-In Variable Returns](#built-in-variable-returns)
+		- [Built-In Function Returns](#built-in-function-returns)
 
 ## Tokens
 
@@ -77,11 +79,13 @@ typedef enum TokenType {
 	IMAGE,
 	AUDIO,
 	VIDEO,
-	MACRO_VARIABLE_DEFINITION,
-	MACRO_VARIABLE_RETURN,
-	MACRO_FUNCTION_DEFINITION,
-	MACRO_FUNCTION_RETURN,
-	MACRO_BUILT_IN_RETURN,
+	VARIABLE_DEFINITION,
+	VARIABLE_RETURN,
+	FUNCTION_DEFINITION,
+	FUNCTION_RETURN,
+	BUILT_IN_VARIABLE_DEFINITION,
+	BUILT_IN_VARIABLE_RETURN,
+	BUILT_IN_FUNCTION_RETURN,
 } TokenType;
 
 typedef struct Token {
@@ -618,12 +622,12 @@ Allowed Internal Tokens:
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `MACRO_VARIABLE_DEFINITION` | `group(2)` | `group(1)` | `N/A` |
+| `VARIABLE_DEFINITION` | `group(2)` | `group(1)` | `N/A` |
 
 Attribute used for: ``
 
 Allowed Internal Tokens:
-- Emphasis
+- None
 
 ### Variable Returns
 
@@ -633,12 +637,12 @@ Allowed Internal Tokens:
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `MACRO_VARIABLE_RETURN` | `N\A` | `group(1)` | `N/A` |
+| `VARIABLE_RETURN` | `N\A` | `group(1)` | `N/A` |
 
 Attribute used for: ``
 
 Allowed Internal Tokens:
-- Emphasis
+- N/A
 
 ### Function Definitions
 
@@ -650,13 +654,12 @@ TODO: Incomplete; allow passing literal parameters inside of quotes
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `MACRO_FUNCTION_DEFINITION` | `group(3)` | `group(1), group(2)` | `` |
+| `FUNCTION_DEFINITION` | `group(3)` | `group(1), group(2)` | `` |
 
 Attribute used for: ``
 
 Allowed Internal Tokens:
-- Emphasis
-
+- None
 
 ### Function Returns
 
@@ -666,24 +669,54 @@ Allowed Internal Tokens:
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `MACRO_FUNCTION_RETURN` | `N\A` | `group(1), group(2)` | `N/A` |
+| `FUNCTION_RETURN` | `N\A` | `group(1), group(2)` | `N/A` |
 
 Attribute used for: ``
 
 Allowed Internal Tokens:
-- Emphasis
+- N/A
 
 ### Built-In Variable Definitions
 
 ```regex
-^%_([A-Za-z][A-Za-z0-9_]*?)[^\S\n]*=[^\S\n]*(.*)
+^%(_[A-Za-z0-9_]*?)[^\S\n]*=[^\S\n]*(.*)
 ```
 
 | type | data | attribute | rank |
 |:-:|:-:|:-:|:-:|
-| `MACRO_VARIABLE_DEFINITION` | `group(2)` | `group(1)` | `N/A` |
+| `BUILT_IN_VARIABLE_DEFINITION` | `group(2)` | `group(1)` | `N/A` |
 
 Attribute used for: ``
 
 Allowed Internal Tokens:
-- Emphasis
+- None
+
+### Built-In Variable Returns
+
+```regex
+\s%(_[A-Za-z0-9_]*?)\s
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `VARIABLE_RETURN` | `N\A` | `group(1)` | `N/A` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- N/A
+
+### Built-In Function Returns
+
+```regex
+\s%(_[A-Za-z0-9_]*?)\([^\S\n]*(|[^\s\(\),\\]+[^\S\n]*(?:,[^\S\n]*[^\s\(\),\\]+[^\S\n]*)*)(?<!\\)\)\s
+```
+
+| type | data | attribute | rank |
+|:-:|:-:|:-:|:-:|
+| `FUNCTION_RETURN` | `N\A` | `group(1), group(2)` | `N/A` |
+
+Attribute used for: ``
+
+Allowed Internal Tokens:
+- N/A
