@@ -11,7 +11,7 @@ Tokens are recursively scanned for internal syntax.
 	- [Validation Process](#validation-process)
 	- [Tokens and Token Types](#tokens-and-token-types)
 		- [Data vs Attribute Field](#data-vs-attribute-field)
-	- [Root](#root)
+		- [Root](#root)
 		- [Raw Tokens](#raw-tokens)
 	- [Context Sensitivity](#context-sensitivity)
 	- [Escaped Characters](#escaped-characters)
@@ -175,7 +175,7 @@ src="{1}" title="{2}" type="{3}"
 
 means that `src` uses the first null-terminated string in the attribute array, `title` uses the second, and `type` uses the third, even though `src` actually uses the second regex capture, `title` uses the third, and `type` uses the fourth.
 
-## Root
+### Root
 
 The `ROOT` token is the base of the document. Before the recursive lexing takes place, the entire document is be assigned as the data field of the `ROOT` token. Recursive lexing starts at the `ROOT` token, and ends when the `ROOT` token has been marked as `RAW`.
 
