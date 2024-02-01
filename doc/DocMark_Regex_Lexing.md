@@ -1,14 +1,43 @@
-# DocMark Regex
+# DocMark Regex Lexing
+
+This document contains specifications for creating a DocMark-standard compliant lexer. The lexer takes a text file as input and outputs a tree of tokens.
 
 Tokens are recursively scanned for internal syntax.
 
+## *VALIDATION PROCESS*
+
+For the framework, ensure that:
+- Every enumerated TokenType is valid and adheres to standard.
+
+For each token section, ensure that:
+- An example of the specified token syntax is provided.
+- The `regex` matches all accepted variants of the corresponding element.
+- The `type` field specifies a type that correctly matches the token.
+- The `type` field specifies a type that is in the enumeration of token types.
+- The `data` field corresponds to a single valid capture group OR is marked with `N/A`.
+- The `data` field is designated to receive data that will be subject to further lexing UNLESS the token type is `RAW_DATA`.
+- The `attribute` field corresponds to only valid capture groups OR is marked with `N/A`.
+- The `attribute` field orders multiple capture groups by separating them with a comma and space (`, `).
+- The `attribute` field is designated to receive only data that does not need to be further lexed.
+- The `rank` field specifies an expression that depends only on valid capture groups OR is marked with `N/A`.
+- The `rank` field specifies an expression that correctly determines the rank of the token.
+- The usage of all elements in the attribute field is specified
+- The section is properly formatted for readability.
+
+Allowed Internal Tokens:
+- Emphasis
+- Links
+
 ## Table of Contents
 
-- [DocMark Regex](#docmark-regex)
+- [DocMark Regex Lexing](#docmark-regex-lexing)
+	- [*VALIDATION PROCESS*](#validation-process)
 	- [Table of Contents](#table-of-contents)
 	- [Tokens](#tokens)
+		- [`RAW`](#raw)
 	- [Context Sensitivity and Flags](#context-sensitivity-and-flags)
 	- [Data vs Attribute Field](#data-vs-attribute-field)
+	- [Root](#root)
 	- [Empty Line](#empty-line)
 	- [Escaped Characters](#escaped-characters)
 	- [Heading](#heading)
@@ -60,7 +89,8 @@ Tokens are recursively scanned for internal syntax.
 
 ```C
 typedef enum TokenType {
-	RAW_DATA,
+	RAW_DATA = 0,
+	ROOT,
 	HEADING,
 	PARAGRAPH,
 	ITALIC,
@@ -119,6 +149,16 @@ typedef struct Token {
 
 All tokens contain a data field and a list of children tokens. After the entire document is parsed, the data field of each individual token is parsed and the resulting tokens are placed into the child field (make sure to free the data field after it is parsed to minimize memory). If a token's data section is parsed and no tokens can be extracted from it, it is placed into a `RAW_DATA` token, which are themselves not parsed (neither are `HORIZONTAL_RULE` tokens). This ensures that the parser will come to the end of the tree.
 
+### `RAW`
+
+Tokens that are `RAW` do not contain any data that can be further lexed or otherwise manipulated.
+
+Some tokens are *inherently* `RAW`; these tokens MUST have no child tokens and SHOULD have empty `data` fields. The one exception to the empty-data-field rule for `RAW` tokens is the `RAW_DATA` token, which contains raw data within its data field that will not be further manipulated by any step in compilation.
+
+All tokens can be *marked* as `RAW`, which is an imperative part of the compilation process. After a token is lexed, if did not generate any child tokens, it is marked as `RAW` and the lexer moves back up the token tree to its parent. When the lexer moves up the tree, it checks which of the token's children are marked as `RAW`. If any of the children are not `RAW`, it will move to that child node and lex it recursively until it generates an inherently `RAW` token. Once all of a token's children are `RAW`, it marks the current token as `RAW` and moves up the tree. This process continues until the `ROOT` token is marked as `RAW`, whereupon the lexing ends.
+
+To mark a token as `RAW`, it's `type` is negated if it is not already negative. This avoids negating inherently `RAW` tokens, which are already negative. The `RAW_DATA` token `type` is equal to `0`, so negating it has no effect.
+
 ## Context Sensitivity and Flags
 
 Some elements are context sensitive, and require setting and reading flags to determine their behavior. The specifications for this behavior will be given in any sections where relevant.
@@ -142,6 +182,10 @@ src="{1}" title="{2}" type="{3}"
 ```
 
 means that src is the first null-terminated string in the attribute array, title is the second, and type is the third, even though src is the second capture, title is the third, and type is the fourth for that token.
+
+## Root
+
+The `ROOT` token is the base of the document. Before the recursive lexing takes place, the entire document is be assigned as the data field of the `ROOT` token. Recursive lexing starts at the `ROOT` token, and ends when the `ROOT` token has been marked as `RAW`.
 
 ## Empty Line
 
