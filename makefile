@@ -1,5 +1,6 @@
 TARGET := docmark
 DEFAULT_ARGUMENTS := 
+CLEAR_COMMAND := clear
 
 # Lex Compiler
 LXC := flex
@@ -10,7 +11,10 @@ CC := gcc
 # C++ compiler
 CXX := g++
 # linker
-LD = gcc
+LD := gcc
+# debugger
+DB := gdb
+
 
 # Lex flags
 LXFLAGS := 
@@ -21,14 +25,17 @@ CFLAGS :=
 # C++ flags
 CXXFLAGS := 
 # C/C++ flags
-CPPFLAGS := -Wall -pedantic-errors
+CPPFLAGS := -Wall -pedantic-errors -g -Og -ggdb
 
 # dependency-generation flags
 DEPFLAGS := -MMD -MP
 # linker flags
 LDFLAGS := 
 # library flags
-LDLIBS := 
+LDLIBS :=
+
+# debugger flags
+DBFLAGS := -ex run --args 
 
 # build directories
 SRC := src/
@@ -49,14 +56,15 @@ RL_SOURCES  := $(wildcard $(SRC)*.rl)
 RLC_SOURCES := $(patsubst $(SRC)%.rl, $(SRC)%.c, $(RL_SOURCES))
 
 # C-compiled object files
-OBJECTS := \
+OBJECTS := $(strip $(sort \
 	$(patsubst $(SRC)%.l, $(OBJ)%.o, $(wildcard $(SRC)*.l)) \
 	$(patsubst $(SRC)%.rl, $(OBJ)%.o, $(wildcard $(SRC)*.rl)) \
 	$(patsubst $(SRC)%.c, $(OBJ)%.o, $(wildcard $(SRC)*.c)) \
 	$(patsubst $(SRC)%.cc, $(OBJ)%.o, $(wildcard $(SRC)*.cc)) \
 	$(patsubst $(SRC)%.cpp, $(OBJ)%.o, $(wildcard $(SRC)*.cpp)) \
 	$(patsubst $(SRC)%.cxx, $(OBJ)%.o, $(wildcard $(SRC)*.cxx)) \
-	$(patsubst $(SRC)%.cxx, $(OBJ)%.o, $(wildcard $(SRC)*.cxx))
+	$(patsubst $(SRC)%.cxx, $(OBJ)%.o, $(wildcard $(SRC)*.cxx)) \
+	))
 
 # include compiler-generated dependency rules
 DEPENDS := $(OBJECTS:.o=.d)
@@ -116,6 +124,17 @@ remake:	clean $(BIN)$(TARGET)
 .PHONY: run
 run: $(BIN)$(TARGET)
 	./$(BIN)$(TARGET) $(DEFAULT_ARGUMENTS)
+
+# clear terminal and execute the program
+.PHONY: crun
+crun: $(BIN)$(TARGET)
+	$(CLEAR_COMMAND)
+	./$(BIN)$(TARGET) $(DEFAULT_ARGUMENTS)
+
+# execute the program via GDB
+.PHONY: debug
+debug: $(BIN)$(TARGET)
+	$(DB) $(DBFLAGS) ./$(BIN)$(TARGET) $(DEFAULT_ARGUMENTS)
 
 # remove previous build and objects
 .PHONY: clean

@@ -1,8 +1,8 @@
 .css
+.vscode
+.gitignore
 bin
 obj
 
 .ex
-src
 .src
-test

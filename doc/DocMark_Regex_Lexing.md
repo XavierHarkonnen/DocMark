@@ -183,6 +183,9 @@ href="{header_identifier}-footnote-{1}"
 
 The `ROOT` token is the base of the document. Before the recursive lexing takes place, the entire document is be assigned as the data field of the `ROOT` token. Recursive lexing starts at the `ROOT` token, and ends when the `ROOT` token has been marked as `RAW`.
 
+Allowed Internal Tokens:
+- All except Table Cells and Delimiters
+
 ### Raw Tokens
 
 Tokens that are `RAW` do not contain any data that can be further lexed or otherwise manipulated.
@@ -912,9 +915,36 @@ TODO
 
 Example:
 
+Full table
+
+```regex
+((?:^\|.+\|\n)+^(?:^\|(?:[:-]-+?[:-]\|)+$)(?:\n^\|.+\|)+$) 
+```
+Leading Cell
+```
+^\|[^\S\n].+?[^\S\n]\|
+```
+Following Cell
+```
+(?<= \|)[^\S\n]+(.*?)[^\S\n]+\|
+```
+Vertical Delimiter
+```
+\|\|
+```
+Leading Horizontal Delimiter
+```
+^\|[:-]-+?[:-]\|
+```
+Following Horizontal Delimiter
+```
+(?<= \|)[:-]-+?[:-]\|
+```
+Left-Titled table
+```
+(^\|(?:[^\S\n].*?[^\S\n]\|)+?\|(?:[^\S\n].*?[^\S\n]\|)+(?:\n\|(?:[^\S\n].*?[^\S\n]\|)+?\|(?:[^\S\n].*?[^\S\n]\|)*)*)
 ```
 
-```
 
 Regex:
 
