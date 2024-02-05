@@ -2,9 +2,29 @@
 
 #include <malloc.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define MAX_CHILDREN 10000
+
+Token *root_token(const char *data) {
+	Token *root = malloc(sizeof(Token));
+
+	if (root == NULL) {
+		fprintf(stderr, "Error allocating memory for root token!");
+		exit(EXIT_FAILURE);
+  }
+
+	root->type = ROOT;
+	root->data = strdup(data);;
+	root->attribute = NULL;
+	root->rank = 0;
+	root->parent = NULL;
+	root->children = NULL;
+	root->num_children = 0;
+
+	return root;
+}
 
 void mark_raw(Token *token) {
 	if (token->type > 0) {
@@ -73,7 +93,10 @@ void delete_token(Token **token) {
 		delete_token(&((*token)->children[i]));
 	}
 
-	free((*token)->children);
+	if ((*token)->children) {
+		free((*token)->children);
+	}
+
 	free(*token);
 	*token = NULL;
 }

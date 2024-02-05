@@ -62,14 +62,16 @@ typedef struct Token {
 	unsigned int num_children;
 } Token;
 
+Token *root_token(const char *data);
+
 void mark_raw(Token *token);
 
 int is_raw(Token *token);
 
 void add_child(
 	const TokenType type,
-	const char* data,
-	const char* attribute,
+	const char *data,
+	const char *attribute,
 	const unsigned int rank,
 	Token *parent
 );

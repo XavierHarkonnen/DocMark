@@ -1,33 +1,47 @@
 #include "docmark_token.h"
 #include "docmark_debug.h"
+#include "generic_lexer.h"
 
-int main() {
-	Token *root = malloc(sizeof(Token));
+#include <stdio.h>
 
-	if (root == NULL) {
+int main(int argc, char *argv[]) {
+	if (argc != 2) {
+		fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
 		return 1;
 	}
 
-	root->type = ROOT;
-	root->rank = 0;
-	root->parent = NULL;
-	root->children = NULL;
-	root->num_children = 0;
+	FILE *file = fopen(argv[1], "r");
+	if (!file) {
+		fprintf(stderr, "Error opening file");
+		return 1;
+	}
 
-	add_child(HEADING, "Hello, World!", NULL, 0, root);
-	add_child(PARAGRAPH, "This is a sample document.", NULL, 0, root);
-	add_child(BOLD, "Bold Text", NULL, 0, root->children[0]);
-	add_child(BOLD, "Base", NULL, 0, root->children[0]->children[0]);
+	fseek(file, 0, SEEK_END);
+	long size = ftell(file);
+	fseek(file, 0, SEEK_SET);
 
-	print_token("Root", root);
-	print_token("Heading", root->children[0]);
-	print_token("Bold2", root->children[0]->children[0]);
+	char *file_content = (char *)malloc(size + 1);
+	if (file_content == NULL) {
+		fprintf(stderr, "Memory allocation error");
+		fclose(file);
+		return 1;
+	}
 
-	mark_raw(root->children[0]->children[0]);
+	fread(file_content, 1, size, file);
+	file_content[size] = '\0';
+	fclose(file);
 
-	print_token("Root", root);
-	print_token("Heading", root->children[0]);
-	print_token("Bold2", root->children[0]->children[0]);
+	Token *root = root_token(file_content);
+
+	for (size_t i = 0; i < root->num_children; ++i) {
+		print_token("", root->children[i]);
+	}
+
+	generic_lex(root);
+
+	for (size_t i = 0; i < root->num_children; ++i) {
+		print_token("", root->children[i]);
+	}
 
 	delete_token(&root);
 

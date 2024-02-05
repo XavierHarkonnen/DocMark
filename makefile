@@ -1,5 +1,5 @@
 TARGET := docmark
-DEFAULT_ARGUMENTS := 
+DEFAULT_ARGUMENTS := test/test.dm
 CLEAR_COMMAND := clear
 
 # Lex Compiler
@@ -13,8 +13,7 @@ CXX := g++
 # linker
 LD := gcc
 # debugger
-DB := gdb
-
+DB := valgrind # gdb
 
 # Lex flags
 LXFLAGS := 
@@ -35,7 +34,7 @@ LDFLAGS :=
 LDLIBS :=
 
 # debugger flags
-DBFLAGS := -ex run --args 
+DBFLAGS := --leak-check=full --show-leak-kinds=all --track-origins=yes # -ex run --args
 
 # build directories
 SRC := src/
