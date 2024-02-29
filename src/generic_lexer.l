@@ -15,7 +15,74 @@
 %option noyywrap
 
 %%
-^\#{1,6}[ \t]+.*$ { // Header
+^---+$ { // HORIZONTAL_RULE
+	add_child(HORIZONTAL_RULE, NULL, NULL, 0, current_token);
+
+	list_rank = 0;
+	description_list = 0;
+}
+
+\[\^[a-zA-Z0-9\-_:\.]+\] { // FOOTNOTE_REFERENCE
+	yytext += 2; // Points to the start of the substring
+	int length = yyleng - 3; // Calculate the length of the substring
+	char data[length + 1]; // Allocate space for the substring
+	strncpy(data, yytext, length); // Copy the substring
+	data[length] = '\0'; // Null-terminate the string
+
+	add_child(FOOTNOTE_REFERENCE, NULL, data, 0, current_token);
+}
+
+\[_[a-zA-Z0-9\-_:\.]+\] { // ENDNOTE_REFERENCE
+	yytext += 2; // Points to the start of the substring
+	int length = yyleng - 3; // Calculate the length of the substring
+	char data[length + 1]; // Allocate space for the substring
+	strncpy(data, yytext, length); // Copy the substring
+	data[length] = '\0'; // Null-terminate the string
+
+	add_child(ENDNOTE_REFERENCE, NULL, data, 0, current_token);
+}
+
+ { // RAW_DATA = 0
+}
+
+ { // ROOT
+}
+
+^\#{1,6}[ \t]+[^\{\n]+[ \t]+\{[ \t]*[A-Za-z][a-zA-Z0-9\-_:\.]*[ \t]*\}$ { // HEADING with specified identifier (TODO: NONGREEDY, permit "{" in data?)
+	unsigned int rank = 0;
+	while (*yytext == '#') {
+		++rank;
+		++yytext;
+	}
+	while (*yytext == ' ' || *yytext == '\t') {
+		++yytext;
+	}
+
+	char *identifier = strchr(yytext, '{') + 1;
+	char *identifier_end = identifier;
+	char *data_end = identifier - 2;
+	while (*identifier == ' ' || *identifier == '\t') {
+		++identifier;
+		++identifier_end;
+	}
+	++identifier_end;
+	while (*identifier_end != ' ' && *identifier_end != '\t' && *identifier_end != '}') {
+		++identifier_end;
+	}
+	while (*data_end == ' ' || *data_end == '\t') {
+		--data_end;
+	}
+
+	*(++data_end) = '\0';
+	*(identifier_end) = '\0';
+
+	add_child(HEADING, strdup(yytext), strdup(identifier), rank, current_token);
+
+	list_rank = 0;
+	description_list = 0;
+}
+
+^\#{1,6}[ \t]+.*$ { // HEADING
 	unsigned int rank = 0;
 	while (*yytext == '#') {
 		++rank;
@@ -31,7 +98,28 @@
 	description_list = 0;
 }
 
-^\>+[ \t]+(.*) { // Blockquote
+ { // ITALIC
+}
+
+ { // BOLD
+}
+
+ { // UNDERSCORE
+}
+
+ { // STRIKETHROUGH
+}
+
+ { // HIGHLIGHT
+}
+
+ { // SUPERSCRIPT
+}
+
+ { // SUBSCRIPT
+}
+
+^\>+[ \t]+(.*) { // BLOCKQUOTE
 	unsigned int rank = 0;
 	++yytext;
 	while (*yytext == '>') {
@@ -48,7 +136,7 @@
 	description_list = 0;
 }
 
-^[ \t]*[0-9]*\.[ \t]+(.*) { // Ordered List
+^[ \t]*[0-9]*\.[ \t]+(.*) { // ORDERED_LIST_ELEMENT
 	unsigned int rank = 0;
 	while (*yytext == ' ' || *yytext == '\t') {
 		if (*yytext == ' ') { ++rank; }
@@ -71,7 +159,7 @@
 	description_list = 0;
 }
 
-^[ \t]*\-[ \t]+(.*) { // Unordered List
+^[ \t]*\-[ \t]+(.*) { // UNORDERED_LIST_ELEMENT
 	unsigned int rank = 0;
 	while (*yytext == ' ' || *yytext == '\t') {
 		if (*yytext == ' ') { ++rank; }
@@ -90,7 +178,7 @@
 	description_list = 0;
 }
 
-^[^ \t\r\n\-].*\n:[ \t]+(.*) { // Description List: First Key and Value
+^[^ \t\r\n\-].*\n:[ \t]+(.*) { // DESCRIPTION_LIST_KEY and first DESCRIPTION_LIST_VALUE
 	char* key = strdup(yytext);
 	char* newline_position = strchr(key, '\n');
 
@@ -105,7 +193,7 @@
 	list_rank = 0;
 }
 
-^:[ \t]+(.*) { // Description List: Subsequent Value
+^:[ \t]+(.*) { // following DESCRIPTION_LIST_VALUE
 	if (description_list) {
 		++yytext;
 		while (*yytext == ' ' || *yytext == '\t') {
@@ -120,18 +208,77 @@
 	list_rank = 0;
 }
 
-.+ { // Paragraph
+ { // INLINE_CODE
+}
+
+ { // CODE_BLOCK
+}
+
+ { // LINK
+}
+
+ { // IMAGE
+}
+
+ { // AUDIO
+}
+
+ { // VIDEO
+}
+
+ { // TOP_TITLED_TABLE
+}
+
+ { // LEFT_TITLED_TABLE
+}
+
+ { // TWO_WAY_TABLE
+}
+
+ { // LEFT_COLUMN
+}
+
+ { // RIGHT_COLUMN
+}
+
+ { // INFOBOX_TITLE
+}
+
+ { // INFOBOX_CONTENT
+}
+
+ { // FOOTNOTE_NOTE
+}
+
+ { // ENDNOTE_NOTE
+}
+
+.+ { // PARAGRAPH
 	add_child(PARAGRAPH, yytext, NULL, 0, current_token);
 
 	list_rank = 0;
 	description_list = 0;
 }
 
-. {
-	printf("Error: skipped: %s\n", yytext);
+ { // VARIABLE_DEFINITION
+}
 
-	list_rank = 0;
-	description_list = 0;
+ { // VARIABLE_RETURN
+}
+
+ { // FUNCTION_DEFINITION
+}
+
+ { // FUNCTION_RETURN
+}
+
+ { // BUILT_IN_VARIABLE_DEFINITION
+}
+
+ { // BUILT_IN_VARIABLE_RETURN
+}
+
+ { // BUILT_IN_FUNCTION_RETURN
 }
 
 \n {

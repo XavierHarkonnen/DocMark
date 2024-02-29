@@ -264,8 +264,7 @@ Allowed Internal Tokens:
 
 **CONTEXT SENSITIVE**
 
-1. Sets the value of the `header_identifier` flag as the compiler-generated header identifier.
-2. Sets the `list_rank` and `description_list` flags to `0`.
+1. Sets the `list_rank` and `description_list` flags to `0`.
 
 ---
 
@@ -294,8 +293,7 @@ Allowed Internal Tokens:
 
 **CONTEXT SENSITIVE**
 
-1. Sets the value of the `header_identifier` flag as the custom header identifier.
-2. Sets the `list_rank` and `description_list` flags to `0`.
+1. Sets the `list_rank` and `description_list` flags to `0`.
 
 ---
 
@@ -866,7 +864,7 @@ Allowed Internal Tokens:
 Example:
 
 ```
-![alt text](example.mp3 "title"; audio/mp3)
+![alt text](example.mp3 "title"; mp3)
 ```
 
 Regex:
@@ -1030,10 +1028,6 @@ TODO: note - the infobox classes are applied to all children of the infobox.
 
 ### Footnote References
 
-**CONTEXT SENSITIVE**
-
-1. Depends on the value of the `header_identifier` flag.
-
 Example:
 
 ```
@@ -1043,7 +1037,7 @@ Example:
 Regex:
 
 ```regex
-\[(\^[A-Za-z0-9]*)\]
+\[\^([A-Za-z0-9]*)\]
 ```
 
 | type | data | attribute | rank |
