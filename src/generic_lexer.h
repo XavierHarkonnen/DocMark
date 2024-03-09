@@ -3,6 +3,6 @@
 
 #include "docmark_token.h"
 
-int generic_lex(Token *token);
+int lex_tree(Token *root_token);
 
 #endif

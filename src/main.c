@@ -5,6 +5,7 @@
 #include "identifier_array.h"
 
 #include <stdio.h>
+#include <string.h>
 
 const char *output_file_path = "test/out.html";
 
@@ -30,7 +31,7 @@ int main(int argc, char *argv[]) {
 	long size = ftell(input_file);
 	fseek(input_file, 0, SEEK_SET);
 
-	char *input_file_content = (char *)malloc(size + 1);
+	char *input_file_content = (char *)malloc(size + 2); // Allocate additional space for a trailing newline character
 	if (input_file_content == NULL) {
 		fprintf(stderr, "Memory allocation error");
 		fclose(input_file);
@@ -38,26 +39,16 @@ int main(int argc, char *argv[]) {
 	}
 
 	fread(input_file_content, 1, size, input_file);
-	input_file_content[size] = '\0';
+	input_file_content[size] = '\n';
+	input_file_content[size + 1] = '\0';
 	fclose(input_file);
 
 	Token *root = root_token(input_file_content);
 	IdentifierArray *heading_identifier_array = create_identifier_array();
 	IdentifierArray *other_identifier_array = create_identifier_array();
 
-	for (size_t i = 0; i < root->num_children; ++i) {
-		print_token("", root->children[i]);
-	}
-
-	generic_lex(root);
-
-	for (size_t i = 0; i < root->num_children; ++i) {
-		print_token("", root->children[i]);
-		mark_raw(root->children[i]);
-		fprintf(stdout, "HTML: %s\n", parse_token(root->children[i], heading_identifier_array, other_identifier_array));
-	}
-
-	print_token("", root);
+	lex_tree(root);
+	parse_tree(root, heading_identifier_array, other_identifier_array, output_file);
 
 	return 0;
 }

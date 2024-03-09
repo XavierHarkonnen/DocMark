@@ -31,6 +31,10 @@
 		"tuple": "c",
 		"type_traits": "c",
 		"utility": "c",
-		"malloc.h": "c"
+		"malloc.h": "c",
+		"stdlib.h": "c",
+		"template lex": "c",
+		"generic_parser.h": "c",
+		"docmark_token.h": "c"
 	}
 }

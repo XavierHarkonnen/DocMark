@@ -1,14 +1,5 @@
 ---
-
-[^0]
-[^1]
-[^keyword]
-[^keyword]
-
-[_0]
-[_1]
-[_keyword]
-[_keyword]
+ ---
 
 # Heading 1
 ## Heading 2
@@ -16,55 +7,49 @@
 #### Heading 4
 ##### Heading 5
 ###### Heading 6
-####### NOT a Heading
+####### NOT Heading 7
 
-[^keyword]
-[_keyword]
+# Specified Heading 1 {specifier}
+## Specified Heading 2 {specifier}
+### Specified Heading 3 {specifier}
+#### Specified Heading 4 {specifier}
+##### Specified Heading 5 {specifier}
+###### Specified Heading 6 {specifier}
+####### NOT Specified Heading 7 {specifier}
 
-# h {heading-test-6-footnote-keyword}
-###### Heading Test 6
-[^keyword]
+> hello
+> no
 
-# Duplicate Heading
-# Duplicate Heading
-## Duplicate Heading
+1. item 1
+	indent 1
+	1. subitem 1
+    indent 2
+	2. subitem 2
+2. item 2
 
-# Specified Heading {Identifier}
-# Specified Heading 2 { Identifier }
-# Specified Duplicate Heading {duplicate-heading}
+- item 1
+	indent 1
+	- subitem 1
+    indent 2
+	- subitem 2
+- item 2
 
-> Blockquote
+Key 1
+: Value 1
+Key 2
+: Value 21
+  indent
+: Value 22
 
-*hello*
-
->>>> Blockquote
-
->Invalid Blockquote
-
-1. Ordered List Element
-	2.            Ordered List Element
-
-- Unordered List Element
-	-            Unordered List Element
-
-Description List Key
-: Description List Value 1
-: Description List Value 2
-: Description List Value 3
-
-: Not Description List Value
-
-Paragraph
+[|
+# heading
+say no
+||
+||
+# heading
+|]
 
 ``c
-1
-a``
-``
-
-2
-
-``html
-3
-``
+hello
 
 ``

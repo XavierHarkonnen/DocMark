@@ -6,6 +6,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "docmark_debug.h"
+
+/* LOCAL PARSING VARIABLES */
+static int in_blockquote;
+static unsigned int blockquote_rank = 0;
+
+static int in_unordered_list;
+static unsigned int unordered_list_rank = 0;
+
+static int in_ordered_list;
+static unsigned int ordered_list_rank = 0;
+
 static inline char* format_data_buffer(const char* format, ...) {
 	va_list args;
 	va_list temp_args;
@@ -73,20 +85,26 @@ static inline char* make_unique_identifier(char* identifier_base, IdentifierArra
 		} else {
 			add_identifier(other_identifier_array, identifier_base);
 		}
-		return strdup(identifier_base);
+		return identifier_base;
 	}
 	
 	int suffix_num = 1;
-	char* identifier;
+	char suffix[5];
+	char* identifier = (char *) malloc((strlen(identifier_base) + sizeof(suffix) + 1) * sizeof(char));
+	if (identifier == NULL) {
+		fprintf(stderr, "ERROR: Memory allocation failed\n");
+		exit(1);
+	}
+
 	while (1) {
-		identifier = strdup(identifier_base);
-		char suffix[5];
+		identifier[0] = '\0';
 		int suffix_size = snprintf(suffix, sizeof(suffix), "-%d", suffix_num);
 		if (suffix_size >= sizeof(suffix)) {
 			printf("ERROR: Identifier suffix size exceeded buffer\n");
 			exit(1);
 		}
 
+		strcat(identifier, identifier_base);
 		strcat(identifier, suffix);
 		unique = 1;
 
@@ -109,19 +127,17 @@ static inline char* make_unique_identifier(char* identifier_base, IdentifierArra
 			} else {
 				add_identifier(other_identifier_array, identifier);
 			}
-			return strdup(identifier);
+			free(identifier_base);
+			return identifier;
 		}
 		++suffix_num;
 	}
 }
 
-int parse_tree(Token *root_token, FILE *output_file) {
-
-}
-
-const char *parse_token(Token *token, IdentifierArray* heading_identifier_array, IdentifierArray* other_identifier_array) {
+char *parse_token(Token *token, IdentifierArray* heading_identifier_array, IdentifierArray* other_identifier_array) {
 	if (token->type > 0) {
 		fprintf(stderr, "ERROR: Cannot parse token; token is not raw\n");
+		print_token("", token);
 		exit(1);
 	} else if (token->num_children != 0 || token->children != NULL) {
 		fprintf(stderr, "ERROR: Cannot parse token; token has children!\n");
@@ -160,8 +176,18 @@ const char *parse_token(Token *token, IdentifierArray* heading_identifier_array,
 				token->attribute
 			);
 		}
-		case RAW_DATA:
-			return strdup(token->data);
+		case RAW_DATA: {
+			int length = strlen(token->data);
+			char *data = (char *)malloc(length + 2); // Allocate additional space for a trailing newline character
+			if (data == NULL) {
+				fprintf(stderr, "ERROR: Memory allocation failed\n");
+				exit(1);
+			}
+			strncpy(data, token->data, length);
+			data[length] = '\n';
+			data[length + 1] = '\0';
+			return data;
+		}
 		case -ROOT:
 			fprintf(stdout, "HIT ROOT\n");
 			// end tree traversal
@@ -210,23 +236,33 @@ const char *parse_token(Token *token, IdentifierArray* heading_identifier_array,
 				"<sub>%s</sub>\n",
 				token->data
 			);
-		case -BLOCKQUOTE: // INCOMPLETE: NESTING BLOCKQUOTES
-			printf("%i\n", token->rank);
+		case -BLOCKQUOTE: {
 			return format_data_buffer(
-				"<blockquote>%s</blockquote>\n",
+				"<blockquote>\n%s\n</blockquote>\n",
 				token->data
 			);
-		case -ORDERED_LIST_ELEMENT: // INCOMPLETE: START AND END OF LIST, LIST TYPE, LIST RANK
+		}
+		case -ORDERED_LIST:
 			return format_data_buffer(
-				"<li>%s</li>\n",
+				"<ol>\n%s\n</ol>\n",
 				token->data
 			);
-		case -UNORDERED_LIST_ELEMENT: // INCOMPLETE: START AND END OF LIST, LIST TYPE, LIST RANK
+		case -UNORDERED_LIST:
 			return format_data_buffer(
-				"<li>%s</li>\n",
+				"<ul>\n%s\n</ul>\n",
 				token->data
 			);
-		case -DESCRIPTION_LIST_KEY: // INCOMPLETE: START AND END OF LIST, LIST TYPE, LIST RANK
+			case -DESCRIPTION_LIST:
+			return format_data_buffer(
+				"<dl>\n%s\n</dl>\n",
+				token->data
+			);
+		case -LIST_ELEMENT:
+			return format_data_buffer(
+				"<li>\n%s\n</li>\n",
+				token->data
+			);
+		case -DESCRIPTION_LIST_KEY:
 			return format_data_buffer(
 				"<dt>%s</dt>\n",
 				token->data
@@ -241,11 +277,10 @@ const char *parse_token(Token *token, IdentifierArray* heading_identifier_array,
 				"<code>%s</code>\n",
 				token->data
 			);
-		case -CODE_BLOCK:
-			return format_data_buffer(
-				"<pre>\n<code>\n%s\n</code>\n</pre>\n",
-				token->data
-			);
+		case -START_CODE_BLOCK:
+			return "<pre>\n<code>\n";
+		case -END_CODE_BLOCK:
+			return "</code>\n</pre>\n";
 		case -LINK:
 			return format_data_buffer(
 				"<a href=\"%s\" title=\"%s\">%s</a>\n",
@@ -293,15 +328,11 @@ const char *parse_token(Token *token, IdentifierArray* heading_identifier_array,
 			fprintf(stdout, "<!-- UNKNOWN TOKEN -->\n");
 			return NULL;
 		case -LEFT_COLUMN:
-			return format_data_buffer(
-				"<div class=\"column-box\">\n<div class=\"column\">\n%s\n</div>\n",
-				token->data
-			);
+			return "<div class=\"column-box\">\n<div class=\"column\">\n";
+		case -DIVIDER_COLUMN:
+			return "</div>\n<div class=\"column\">\n";
 		case -RIGHT_COLUMN:
-			return format_data_buffer(
-				"<div class=\"column\">\n%s\n</div>\n</div>",
-				token->data
-			);
+			return "</div>\n</div>\n";
 		case -INFOBOX_TITLE:
 			/* if (!token->attribute) {
 				token->attribute = generate_identifier_base(token->data);
@@ -324,6 +355,11 @@ const char *parse_token(Token *token, IdentifierArray* heading_identifier_array,
 				"<p>%s</p>\n",
 				token->data
 			);
+		case -INDENTED_PARAGRAPH:
+			return format_data_buffer(
+				"<p class=\"indented\">%s</p>\n",
+				token->data
+			);
 		case -VARIABLE_DEFINITION:
 		case -VARIABLE_RETURN:
 		case -FUNCTION_DEFINITION:
@@ -337,4 +373,44 @@ const char *parse_token(Token *token, IdentifierArray* heading_identifier_array,
 	}
 	
 	delete_token(&token);
+}
+
+static int parse_recursive(Token *token, IdentifierArray* heading_identifier_array, IdentifierArray* other_identifier_array) {
+	if (token->data == NULL) {
+		token->data = malloc(1);
+		if (token->data == NULL) {
+			fprintf(stderr, "ERROR: Memory allocation failed\n");
+			exit(1);
+		}
+		token->data[0] = '\0';
+	} else {
+		printf("WARNING: Token is not empty\n%s\n", token->data);
+	}
+	
+	for (size_t i = 0; i < token->num_children; ++i) {
+		if (token->children[i]->num_children != 0) {
+			parse_recursive(token->children[i], heading_identifier_array, other_identifier_array);
+		} else {
+			mark_raw(token->children[i]);
+			char* data = parse_token(token->children[i], heading_identifier_array, other_identifier_array);
+
+			token->data = realloc(token->data, strlen(token->data) + strlen(data) + 1);
+
+			if (token->data == NULL) {
+				fprintf(stderr, "ERROR: Memory allocation failed\n");
+				exit(1);
+			}
+
+			strcat(token->data, data);
+		}
+	}
+	return 0;
+}
+
+int parse_tree(Token *root_token, IdentifierArray* heading_identifier_array, IdentifierArray* other_identifier_array, FILE *output_file) {
+	parse_recursive(root_token, heading_identifier_array, other_identifier_array);
+	fwrite(root_token->data, sizeof(char), strlen(root_token->data), output_file);
+	free(root_token->data);
+	free(root_token);
+	return 0;
 }
