@@ -210,14 +210,12 @@ Text emphasis is used to convey additional meaning or importance by altering the
 
 All emphasis markers must directly precede and follow the emphasized text, without any interrupting whitespace. However, there may be whitespace between words in the emphasized section.
 
-For italics, the text should be surrounded by single asterisks (`*`); for bold, double asterisks (`**`); for underlines, a single tilde (`~`); for strikethrough, double tildes (`~~`); for highlights, a single equality sign (`=`); for superscript, a single caret (`^`); for subscript, a single underscore (`_`); 
-
 | DocMark | HTML |
 |:-:|:-:|
 | `*Italic Text*` | `<em>Italic Text</em>` |
-| `**Bold Text**` | `<strong>Bold Text</strong>` |
+| `+Bold Text+` | `<strong>Bold Text</strong>` |
 | `~Underlined Text~` | `<u>Underlined Text</u>` |
-| `~~Struckthrough Text~~` | `<s>Struckthrough Text</s>` | 
+| `-Struckthrough Text-` | `<s>Struckthrough Text</s>` | 
 | `=Highlighted Text=` | `<mark>Highlighted Text</mark>` |
 | `^Superscripted Text^` | `<sup>Superscripted Text</sup>` |
 | `_Subscripted Text_` | `<sub>Subscripted Text</sub>` |

@@ -1,6 +1,7 @@
 #include "docmark_lexer.h"
 
 #include "docmark_token_lexers.h"
+#include "docmark_debug.h"
 
 #include <stdio.h>
 
@@ -39,7 +40,7 @@ static int lex_token(Token *token) {
 		case DESCRIPTION_LIST:
 			return lex_(token);
 		case LIST_ELEMENT:
-			return lex_(token);
+			return lex_list_element(token);
 		case DESCRIPTION_LIST_KEY:
 			return lex_(token);
 		case DESCRIPTION_LIST_VALUE:
@@ -63,21 +64,28 @@ static int lex_token(Token *token) {
 		case ENDNOTE_NOTE:
 			return lex_(token);
 		case PARAGRAPH:
-			return lex_(token);
+			return lex_paragraph(token);
 		case INDENTED_PARAGRAPH:
 			return lex_(token);
 		default:
 			printf("WARNING: Unknown token type: %d\n", token->type);
+			print_token("", token);
 			return lex_(token);
 	}
 }
 
 int lex_recursive(Token *token) {
-	if (token->num_children > 0) {
-		for (int i = 0; i < token->num_children; i++) {
-			lex_recursive(token->children[i]);
-		}
-	} else {
+	if (is_raw(token)) {
+		return 0;
+	}
+	else {
 		lex_token(token);
+		if (token->num_children > 0) {
+			for (int i = 0; i < token->num_children; i++) {
+				lex_recursive(token->children[i]);
+			}
+		}
+		mark_raw(token);
+		return 0;
 	}
 }

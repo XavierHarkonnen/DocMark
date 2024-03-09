@@ -51,14 +51,40 @@ static inline char* generate_identifier_base(const char* data) {
 	}
 
 	int i = 0, j = 0;
+	int in_tag = 0;
+	unsigned char buffer_counter = 0;
+	char buffer[256];
+	buffer[buffer_counter] = '\0';
 	while (data[i] != '\0') {
+		if (data[i] == '<' && data[(i > 0 ? i : 0)] != '\\') {
+			in_tag = 1; // Set flag when entering a tag
+		}
+		else if (data[i] == '>') {
+			in_tag = 0; // Clear flag when exiting a tag
+			buffer_counter = 0;
+			buffer[buffer_counter] = '\0';
+		}
 		char c = tolower(data[i]);
 		if (isalnum(c)) {
-			identifier[j++] = c;
-		} else if (c == ' ') {
-			identifier[j++] = '-';
+			if (in_tag) { 
+				buffer[buffer_counter++] = c;
+				buffer[buffer_counter] = '\0';
+			} else {
+				identifier[j++] = c;
+			}
+		}
+		else if (c == ' ') {
+			if (in_tag) { 
+				buffer[buffer_counter++] = '-';
+				buffer[buffer_counter] = '\0';
+			} else {
+				identifier[j++] = '-';
+			}
 		}
 		i++;
+	}
+	while (buffer[buffer_counter] != '\0') {
+		identifier[j++] = buffer[buffer_counter++];
 	}
 	identifier[j] = '\0';
 	return identifier;
@@ -180,20 +206,29 @@ char *parse_token(Token *token, IdentifierArray* heading_identifier_array, Ident
 				token->attribute
 			);
 		}
+		case START_CODE_BLOCK:
+			return "<pre>\n<code>\n";
+		case END_CODE_BLOCK:
+			return "</code>\n</pre>\n";
+		case LEFT_COLUMN:
+			return "<div class=\"column-box\">\n<div class=\"column\">\n";
+		case DIVIDER_COLUMN:
+			return "</div>\n<div class=\"column\">\n";
+		case RIGHT_COLUMN:
+			return "</div>\n</div>\n";
 		case RAW_DATA: {
 			int length = strlen(token->data);
-			char *data = (char *)malloc(length + 2); // Allocate additional space for a trailing newline character
+			char *data = (char *)malloc(length + 1);
 			if (data == NULL) {
 				fprintf(stderr, "ERROR: Memory allocation failed\n");
 				exit(1);
 			}
 			strncpy(data, token->data, length);
-			data[length] = '\n';
-			data[length + 1] = '\0';
+			data[length] = '\0';
 			return data;
 		}
 		case -ROOT:
-			fprintf(stdout, "HIT ROOT\n");
+			printf("HIT ROOT\n");
 			// end tree traversal
 			return strdup(token->data);
 		case -HEADING:
@@ -210,34 +245,39 @@ char *parse_token(Token *token, IdentifierArray* heading_identifier_array, Ident
 				token->data,
 				token->rank
 			);
+		case -ITALIC:
+			return format_data_buffer(
+				"<i>%s</i>",
+				token->data
+			);
 		case -BOLD:
 			return format_data_buffer(
-				"<em>%s</em>\n",
+				"<b>%s</b>",
 				token->data
 			);
 		case -UNDERSCORE:
 			return format_data_buffer(
-				"<u>%s</u>\n",
+				"<u>%s</u>",
 				token->data
 			);
 		case -STRIKETHROUGH:
 			return format_data_buffer(
-				"<s>%s</s>\n",
+				"<s>%s</s>",
 				token->data
 			);
 		case -HIGHLIGHT:
 			return format_data_buffer(
-				"<mark>%s</mark>\n",
+				"<mark>%s</mark>",
 				token->data
 			);
 		case -SUPERSCRIPT:
 			return format_data_buffer(
-				"<sup>%s</sup>\n",
+				"<sup>%s</sup>",
 				token->data
 			);
 		case -SUBSCRIPT:
 			return format_data_buffer(
-				"<sub>%s</sub>\n",
+				"<sub>%s</sub>",
 				token->data
 			);
 		case -BLOCKQUOTE: {
@@ -248,22 +288,22 @@ char *parse_token(Token *token, IdentifierArray* heading_identifier_array, Ident
 		}
 		case -ORDERED_LIST:
 			return format_data_buffer(
-				"<ol>\n%s\n</ol>\n",
+				"<ol>\n%s</ol>\n",
 				token->data
 			);
 		case -UNORDERED_LIST:
 			return format_data_buffer(
-				"<ul>\n%s\n</ul>\n",
+				"<ul>\n%s</ul>\n",
 				token->data
 			);
 			case -DESCRIPTION_LIST:
 			return format_data_buffer(
-				"<dl>\n%s\n</dl>\n",
+				"<dl>\n%s</dl>\n",
 				token->data
 			);
 		case -LIST_ELEMENT:
 			return format_data_buffer(
-				"<li>\n%s\n</li>\n",
+				"<li>\n%s</li>\n",
 				token->data
 			);
 		case -DESCRIPTION_LIST_KEY:
@@ -278,13 +318,9 @@ char *parse_token(Token *token, IdentifierArray* heading_identifier_array, Ident
 			);
 		case -INLINE_CODE:
 			return format_data_buffer(
-				"<code>%s</code>\n",
+				"<code>%s</code>",
 				token->data
 			);
-		case -START_CODE_BLOCK:
-			return "<pre>\n<code>\n";
-		case -END_CODE_BLOCK:
-			return "</code>\n</pre>\n";
 		case -LINK:
 			return format_data_buffer(
 				"<a href=\"%s\" title=\"%s\">%s</a>\n",
@@ -331,12 +367,6 @@ char *parse_token(Token *token, IdentifierArray* heading_identifier_array, Ident
 		case -TWO_WAY_TABLE:
 			fprintf(stdout, "<!-- UNKNOWN TOKEN -->\n");
 			return NULL;
-		case -LEFT_COLUMN:
-			return "<div class=\"column-box\">\n<div class=\"column\">\n";
-		case -DIVIDER_COLUMN:
-			return "</div>\n<div class=\"column\">\n";
-		case -RIGHT_COLUMN:
-			return "</div>\n</div>\n";
 		case -INFOBOX_TITLE:
 			/* if (!token->attribute) {
 				token->attribute = generate_identifier_base(token->data);
@@ -380,8 +410,6 @@ char *parse_token(Token *token, IdentifierArray* heading_identifier_array, Ident
 }
 
 static char *parse_recursive(Token *token, IdentifierArray* heading_identifier_array, IdentifierArray* other_identifier_array) {
-	print_token("", token);
-	
 	if (token->data == NULL) {
 		token->data = malloc(1);
 		if (token->data == NULL) {
@@ -402,6 +430,8 @@ static char *parse_recursive(Token *token, IdentifierArray* heading_identifier_a
 
 		strcat(token->data, data);
 	}
+
+	print_token("", token);
 
 	delete_children(&token);
 

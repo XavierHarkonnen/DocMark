@@ -4,17 +4,47 @@
 	#include "docmark_debug.h"
 	#include "docmark_definitions.h"
 
+	#include <stdlib.h>
 	#include <stdio.h>
 	#include <string.h>
-
-	Token *current_token;
-
-	int LAST_CONDITION = 0;
 
 	// FLAGS
 	unsigned int heading_rank = 0;
 	int in_left_column = 0;
 	int in_right_column = 0;
+
+	Token *current_token;
+	int LAST_CONDITION = 0;
+	int buffer_counter = 0;
+	size_t buffer_size = 0;
+	char *buffer = NULL;
+
+	static void flush_buffer_raw() {
+		if (buffer) {
+			add_child(RAW_DATA, buffer, NULL, 0, current_token);
+			buffer_counter = 0;
+			buffer[buffer_counter] = '\0';
+		}
+	}
+	
+	static void flush_buffer_paragraph() {
+		char* buffer_pointer = buffer;
+		if (buffer) {
+			if (strlen(buffer_pointer) > 1) {
+				if (*buffer_pointer == ' ' || *buffer_pointer == '\t') {
+					while(*buffer_pointer == ' ' || *buffer_pointer == '\t') {
+						++buffer_pointer;
+					}
+					add_child(INDENTED_PARAGRAPH, buffer_pointer, NULL, 0, current_token);
+				}
+				else {
+					add_child(PARAGRAPH, buffer, NULL, 0, current_token);
+				}
+			}
+			buffer_counter = 0;
+			buffer[buffer_counter] = '\0';
+		}
+	}
 }
 
 %option noyywrap
@@ -30,9 +60,6 @@
 %x LEX_SUPERSCRIPT
 %x LEX_SUBSCRIPT
 %x LEX_BLOCKQUOTE
-%x LEX_ORDERED_LIST
-%x LEX_UNORDERED_LIST
-%x LEX_DESCRIPTION_LIST
 %x LEX_LIST_ELEMENT
 %x LEX_DESCRIPTION_LIST_KEY
 %x LEX_DESCRIPTION_LIST_VALUE
@@ -50,12 +77,37 @@
 %x LEX_PARAGRAPH
 %x LEX_INDENTED_PARAGRAPH
 
+%x IN_RAW
 %x IN_HEADING
+%x IN_ITALIC
 %x IN_BLOCKQUOTE
 %x IN_CODE_BLOCK
 %x IN_PARAGRAPH
 
 %%
+<LEX_HEADING,LEX_PARAGRAPH>. { // RAW_DATA
+	if (buffer_counter + 1 >= buffer_size) { // Check if buffer needs to be resized
+		buffer_size = (buffer_size == 0) ? 1 : buffer_size * 2; // Double the buffer size
+		buffer = realloc(buffer, buffer_size);
+	}
+	if (buffer == NULL) {
+		fprintf(stderr, "ERROR: Memory allocation failed\n");
+		exit(1);
+	}
+
+	buffer[buffer_counter++] = *yytext;
+	buffer[buffer_counter] = '\0';
+}
+
+<LEX_HEADING,LEX_PARAGRAPH><<EOF>> { // RAW_DATA
+	flush_buffer_raw();
+	return 0;
+}
+
+<LEX_HEADING,LEX_PARAGRAPH>\n { // RAW_DATA
+	flush_buffer_raw();
+}
+
 <LEX_ROOT>^---+$ { // HORIZONTAL_RULE
 	add_child(HORIZONTAL_RULE, NULL, NULL, 0, current_token);
 }
@@ -109,7 +161,140 @@
 	BEGIN(LAST_CONDITION);
 }
 
-<LEX_ROOT>^(\>+[ \t]+.*\n)+ { // BLOCKQUOTE
+<LEX_HEADING,LEX_PARAGRAPH,LEX_LIST_ELEMENT>\*[^\* \t\r\n\\]\* { // Single character ITALIC
+	flush_buffer_raw();
+	yytext += 2;
+	*yytext = '\0';
+	--yytext;
+	add_child(ITALIC, yytext, NULL, 0, current_token);
+}
+
+<LEX_HEADING,LEX_PARAGRAPH,LEX_LIST_ELEMENT>\*[^\* \t\r\n].*[^\* \t\r\n\\]\* { // ITALIC
+	flush_buffer_raw();
+	char *data_pointer = yytext + 1;
+	while (*data_pointer != '*') {
+		++data_pointer;
+	}
+	*data_pointer = '\0';
+	yyless(data_pointer - yytext + 1);
+	add_child(ITALIC, yytext + 1, NULL, 0, current_token);
+}
+
+<LEX_HEADING,LEX_PARAGRAPH,LEX_LIST_ELEMENT>\+[^\+ \t\r\n\\]\+ { // Single character BOLD
+	flush_buffer_raw();
+	yytext += 2;
+	*yytext = '\0';
+	--yytext;
+	add_child(BOLD, yytext, NULL, 0, current_token);
+}
+
+<LEX_HEADING,LEX_PARAGRAPH,LEX_LIST_ELEMENT>\+[^\+ \t\r\n].*[^\+ \t\r\n\\]\+ { // BOLD
+	flush_buffer_raw();
+	char *data_pointer = yytext + 1;
+	while (*data_pointer != '+') {
+		++data_pointer;
+	}
+	*data_pointer = '\0';
+	yyless(data_pointer - yytext + 1);
+	add_child(BOLD, yytext + 1, NULL, 0, current_token);
+}
+
+<LEX_HEADING,LEX_PARAGRAPH,LEX_LIST_ELEMENT>\~[^\~ \t\r\n\\]\~ { // Single character UNDERSCORE
+	flush_buffer_raw();
+	yytext += 2;
+	*yytext = '\0';
+	--yytext;
+	add_child(UNDERSCORE, yytext, NULL, 0, current_token);
+}
+
+<LEX_HEADING,LEX_PARAGRAPH,LEX_LIST_ELEMENT>\~[^\~ \t\r\n].*[^\~ \t\r\n\\]\~ { // UNDERSCORE
+	flush_buffer_raw();
+	char *data_pointer = yytext + 1;
+	while (*data_pointer != '~') {
+		++data_pointer;
+	}
+	*data_pointer = '\0';
+	yyless(data_pointer - yytext + 1);
+	add_child(UNDERSCORE, yytext + 1, NULL, 0, current_token);
+}
+
+<LEX_HEADING,LEX_PARAGRAPH,LEX_LIST_ELEMENT>\-[^\- \t\r\n\\]\- { // Single character STRIKETHROUGH
+	flush_buffer_raw();
+	yytext += 2;
+	*yytext = '\0';
+	--yytext;
+	add_child(STRIKETHROUGH, yytext, NULL, 0, current_token);
+}
+
+<LEX_HEADING,LEX_PARAGRAPH,LEX_LIST_ELEMENT>\-[^\- \t\r\n].*[^\- \t\r\n\\]\- { // STRIKETHROUGH
+	flush_buffer_raw();
+	char *data_pointer = yytext + 1;
+	while (*data_pointer != '-') {
+		++data_pointer;
+	}
+	*data_pointer = '\0';
+	yyless(data_pointer - yytext + 1);
+	add_child(STRIKETHROUGH, yytext + 1, NULL, 0, current_token);
+}
+
+<LEX_HEADING,LEX_PARAGRAPH,LEX_LIST_ELEMENT>\=[^\= \t\r\n\\]\= { // Single character HIGHLIGHT
+	flush_buffer_raw();
+	yytext += 2;
+	*yytext = '\0';
+	--yytext;
+	add_child(HIGHLIGHT, yytext, NULL, 0, current_token);
+}
+
+<LEX_HEADING,LEX_PARAGRAPH,LEX_LIST_ELEMENT>\=[^\= \t\r\n].*[^\= \t\r\n\\]\= { // HIGHLIGHT
+	flush_buffer_raw();
+	char *data_pointer = yytext + 1;
+	while (*data_pointer != '=') {
+		++data_pointer;
+	}
+	*data_pointer = '\0';
+	yyless(data_pointer - yytext + 1);
+	add_child(HIGHLIGHT, yytext + 1, NULL, 0, current_token);
+}
+
+<LEX_HEADING,LEX_PARAGRAPH,LEX_LIST_ELEMENT>\^[^\^ \t\r\n\\]\^ { // Single character SUPERSCRIPT
+	flush_buffer_raw();
+	yytext += 2;
+	*yytext = '\0';
+	--yytext;
+	add_child(SUPERSCRIPT, yytext, NULL, 0, current_token);
+}
+
+<LEX_HEADING,LEX_PARAGRAPH,LEX_LIST_ELEMENT>\^[^\^ \t\r\n].*[^\^ \t\r\n\\]\^ { // SUPERSCRIPT
+	flush_buffer_raw();
+	char *data_pointer = yytext + 1;
+	while (*data_pointer != '^') {
+		++data_pointer;
+	}
+	*data_pointer = '\0';
+	yyless(data_pointer - yytext + 1);
+	add_child(SUPERSCRIPT, yytext + 1, NULL, 0, current_token);
+}
+
+<LEX_HEADING,LEX_PARAGRAPH,LEX_LIST_ELEMENT>\_[^\_ \t\r\n\\]\_ { // Single character SUBSCRIPT
+	flush_buffer_raw();
+	yytext += 2;
+	*yytext = '\0';
+	--yytext;
+	add_child(SUBSCRIPT, yytext, NULL, 0, current_token);
+}
+
+<LEX_HEADING,LEX_PARAGRAPH,LEX_LIST_ELEMENT>\_[^\_ \t\r\n].*[^\_ \t\r\n\\]\_ { // SUBSCRIPT
+	flush_buffer_raw();
+	char *data_pointer = yytext + 1;
+	while (*data_pointer != '_') {
+		++data_pointer;
+	}
+	*data_pointer = '\0';
+	yyless(data_pointer - yytext + 1);
+	add_child(SUBSCRIPT, yytext + 1, NULL, 0, current_token);
+}
+
+<LEX_ROOT,LEX_LIST_ELEMENT>^(\>+[ \t]+.*\n)+ { // BLOCKQUOTE
 	char *stripped_data = (char *) malloc((strlen(yytext) + 1) * sizeof(char));
 	char *stripped_data_counter = stripped_data;
 
@@ -133,7 +318,7 @@
 	free(stripped_data);
 }
 
-<LEX_ROOT>^([0-9]+\.[ \t]+.*\n(([ ]{2,}|\t)+.*\n)*)+ { // ORDERED_LIST		/* WARNING: Must change `{2,}` to `{TAB_SIZE,}` MANUALLY! */
+<LEX_ROOT,LEX_LIST_ELEMENT>^([0-9]+\.[ \t]+.*\n(([ ]{2,}|\t)+.*\n)*)+ { // ORDERED_LIST		/* WARNING: Must change `{2,}` to `{TAB_SIZE,}` MANUALLY! */
 	add_child(ORDERED_LIST, NULL, NULL, 0, current_token);
 	Token *working_token = current_token->children[current_token->num_children - 1];
 
@@ -193,7 +378,7 @@
 	}
 }
 
-<LEX_ROOT>^(-[ \t]+.*\n(([ ]{2,}|\t)+.*\n)*)+ { // UNORDERED_LIST		/* WARNING: Must change `{2,}` to `{TAB_SIZE,}` ! MANUALLY ! */
+<LEX_ROOT,LEX_LIST_ELEMENT>^(-[ \t]+.*\n(([ ]{2,}|\t)+.*\n)*)+ { // UNORDERED_LIST		/* WARNING: Must change `{2,}` to `{TAB_SIZE,}` ! MANUALLY ! */
 	add_child(UNORDERED_LIST, NULL, NULL, 0, current_token);
 	Token *working_token = current_token->children[current_token->num_children - 1];
 
@@ -250,7 +435,7 @@
 	}
 }
 
-<LEX_ROOT>^([^ \t\r\n\-:].*\n(:[ \t]+.*\n)+)+ { // DESCRIPTION_LIST
+<LEX_ROOT,LEX_LIST_ELEMENT>^([^ \t\r\n\-:].*\n(:[ \t]+.*\n)+)+ { // DESCRIPTION_LIST
 	add_child(DESCRIPTION_LIST, NULL, NULL, 0, current_token);
 	Token *working_token = current_token->children[current_token->num_children - 1];
 
@@ -280,22 +465,51 @@
 	}
 }
 
+<LEX_HEADING,LEX_PARAGRAPH,LEX_LIST_ELEMENT>\`[^\` \t\r\n\\]\` { // Single character INLINE_CODE
+	flush_buffer_raw();
+	yytext += 2;
+	*yytext = '\0';
+	--yytext;
+	add_child(INLINE_CODE, yytext, NULL, 0, current_token);
+}
+
+<LEX_HEADING,LEX_PARAGRAPH,LEX_LIST_ELEMENT>\`[^\` \t\r\n].*[^\` \t\r\n\\]\` { // INLINE_CODE
+	flush_buffer_raw();
+	char *data_pointer = yytext + 1;
+	while (*data_pointer != '`') {
+		++data_pointer;
+	}
+	*data_pointer = '\0';
+	yyless(data_pointer - yytext + 1);
+	add_child(INLINE_CODE, yytext + 1, NULL, 0, current_token);
+}
+
+
 <LEX_ROOT>^\`\`[A-Za-z0-9]*$ { // Start CODE_BLOCK
 	yytext += 2;
 	add_child(START_CODE_BLOCK, yytext, NULL, 0, current_token);
 	BEGIN(IN_CODE_BLOCK);
 }
 
-<IN_CODE_BLOCK>.* {
-	add_child(RAW_DATA, yytext, NULL, 0, current_token);
+<IN_CODE_BLOCK>^\`\`$ { // End CODE_BLOCK
+	add_child(END_CODE_BLOCK, NULL, NULL, 0, current_token);
+	BEGIN(LEX_ROOT);
+}
+
+<IN_CODE_BLOCK>^.+$ {
+	char *data = malloc(strlen(yytext) + 2);
+	strcpy(data, yytext);
+	strcat(data, "\n");
+	add_child(RAW_DATA, data, NULL, 0, current_token);
+	free(data);
+}
+
+<IN_CODE_BLOCK>\n\n {
+	yyless(1);
+	add_child(RAW_DATA, "\n", NULL, 0, current_token);
 }
 
 <IN_CODE_BLOCK>\n {}
-
-<IN_CODE_BLOCK>^\`\`$ { // End CODE_BLOCK
-	add_child(END_CODE_BLOCK, yytext, NULL, 0, current_token);
-	BEGIN(LEX_ROOT);
-}
 
  { // TOP_TITLED_TABLE
 }
@@ -346,379 +560,164 @@
  { // ENDNOTE_NOTE
 }
 
-<LEX_ROOT>. { // Nothing else matched; go to PARAGRAPH
-	yyless(0);
-	LAST_CONDITION = YY_START;
-	BEGIN(IN_PARAGRAPH);
-}
-
-<IN_PARAGRAPH>[ \t]+.+ { // INDENTED_PARAGRAPH
-	while (*yytext == ' ' || *yytext == '\t') {
-		++yytext;
+<LEX_ROOT,LEX_LIST_ELEMENT>. { // PARAGRAPH
+	if (buffer_counter + 1 >= buffer_size) { // Check if buffer needs to be resized
+		buffer_size = (buffer_size == 0) ? 1 : buffer_size * 2; // Double the buffer size
+		buffer = realloc(buffer, buffer_size);
 	}
-	add_child(INDENTED_PARAGRAPH, yytext, NULL, 0, current_token);
-	BEGIN(LAST_CONDITION);
+	if (buffer == NULL) {
+		fprintf(stderr, "ERROR: Memory allocation failed\n");
+		exit(1);
+	}
+
+	buffer[buffer_counter++] = *yytext;
+	buffer[buffer_counter] = '\0';
 }
 
-<IN_PARAGRAPH>.+ { // PARAGRAPH
-	add_child(PARAGRAPH, yytext, NULL, 0, current_token);
-	BEGIN(LAST_CONDITION);
+<LEX_ROOT,LEX_LIST_ELEMENT><<EOF>> { // PARAGRAPH
+	flush_buffer_paragraph();
+	return 0;
 }
 
-<LEX_ROOT>\n {
+<LEX_ROOT,LEX_LIST_ELEMENT>\n { // PARAGRAPH
+	flush_buffer_paragraph();
 }
 
+
+<*>. {
+	printf("UNHANDLED: %c\n", *yytext);
+}
+
+<*>\n {
+	printf("UNHANDLED: %c", *yytext);
+}
 %%
 
-int lex_root(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
+static void lex(int mode, Token *token) {
+	size_t input_size = strlen(token->data);
+	char *input = (char *) malloc((input_size + 2) * sizeof(char));
+	strcpy(input, token->data);
+	input[input_size] = '\n';
+	input[input_size + 1] = '\0';
+
+	yyin = fmemopen(input, strlen(token->data), "r");
 	current_token = token;
 
-	BEGIN(LEX_ROOT);
+	BEGIN(mode);
 	yylex();
 
 	free(token->data);
+	free(input);
 	token->data = NULL;
 	mark_raw(token);
-	return 0;
+}
+
+int lex_root(Token *token) {
+	lex(LEX_ROOT, token);
 }
 
 int lex_heading(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(LEX_HEADING);
-	return yylex();
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_HEADING, token);
 }
 
 int lex_italic(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(LEX_ITALIC);
-	return yylex();
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_ITALIC, token);
 }
 
 int lex_bold(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(BOLD);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_BOLD, token);
 }
 
 int lex_underscore(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(UNDERSCORE);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_UNDERSCORE, token);
 }
 
 int lex_strikethrough(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(STRIKETHROUGH);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_STRIKETHROUGH, token);
 }
 
 int lex_highlight(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(HIGHLIGHT);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_HIGHLIGHT, token);
 }
 
 int lex_superscript(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(SUPERSCRIPT);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_SUPERSCRIPT, token);
 }
 
 int lex_subscript(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(SUBSCRIPT);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_SUBSCRIPT, token);
 }
 
 int lex_blockquote(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(BLOCKQUOTE);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
-}
-
-int lex_ordered_list(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(ORDERED_LIST);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
-}
-
-int lex_unordered_list(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(UNORDERED_LIST);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
-}
-
-int lex_description_list(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(DESCRIPTION_LIST);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_BLOCKQUOTE, token);
 }
 
 int lex_list_element(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(LIST_ELEMENT);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_LIST_ELEMENT, token);
 }
 
 int lex_description_list_key(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(DESCRIPTION_LIST_KEY);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_DESCRIPTION_LIST_KEY, token);
 }
 
 int lex_description_list_value(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(DESCRIPTION_LIST_VALUE);
-
+	lex(LEX_DESCRIPTION_LIST_VALUE, token);
 }
 
 int lex_link(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(LINK);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_LINK, token);
 }
 
 int lex_image(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(IMAGE);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_IMAGE, token);
 }
 
 int lex_audio(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(AUDIO);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_AUDIO, token);
 }
 
 int lex_video(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(VIDEO);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_VIDEO, token);
 }
 
 int lex_top_titled_table(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(TOP_TITLED_TABLE);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_TOP_TITLED_TABLE, token);
 }
 
 int lex_left_titled_table(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(LEFT_TITLED_TABLE);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_LEFT_TITLED_TABLE, token);
 }
 
 int lex_two_way_table(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(TWO_WAY_TABLE);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_TWO_WAY_TABLE, token);
 }
 
 int lex_infobox_title(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(INFOBOX_TITLE);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_INFOBOX_TITLE, token);
 }
 
 int lex_infobox_content(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(INFOBOX_CONTENT);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_INFOBOX_CONTENT, token);
 }
 
 int lex_footnote_note(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(FOOTNOTE_NOTE);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_FOOTNOTE_NOTE, token);
 }
 
 int lex_endnote_note(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(ENDNOTE_NOTE);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_ENDNOTE_NOTE, token);
 }
 
 int lex_paragraph(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(PARAGRAPH);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_PARAGRAPH, token);
 }
 
 int lex_indented_paragraph(Token *token) {
-	yyin = fmemopen(token->data, strlen(token->data), "r");
-	current_token = token;
-
-	BEGIN(INDENTED_PARAGRAPH);
-
-	free(token->data);
-	token->data = NULL;
-	mark_raw(token);
-	return 0;
+	lex(LEX_INDENTED_PARAGRAPH, token);
 }
 
 int lex_(Token *token) {
-	printf("WARNING: Token is not being lexed: uses `lex_()` as lexing function\n");
-	print_token("", token);
+	// printf("WARNING: Token is not being lexed: uses `lex_()` as lexing function\n");
+	// print_token("", token);
 	return 0;
 }
