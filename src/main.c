@@ -1,6 +1,5 @@
 #include "docmark_token.h"
-#include "docmark_debug.h"
-#include "generic_lexer.h"
+#include "docmark_lexer.h"
 #include "generic_parser.h"
 #include "identifier_array.h"
 

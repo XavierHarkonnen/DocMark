@@ -1,10 +1,11 @@
 %top{
-	#include "docmark_lexers.h"
-	#include "docmark_lexing_standards.h"
+	#include "docmark_token_lexers.h"
+
+	#include "docmark_debug.h"
+	#include "docmark_definitions.h"
 
 	#include <stdio.h>
 	#include <string.h>
-
 
 	Token *current_token;
 
@@ -21,6 +22,33 @@
 
 %x LEX_ROOT
 %x LEX_HEADING
+%x LEX_ITALIC
+%x LEX_BOLD
+%x LEX_UNDERSCORE
+%x LEX_STRIKETHROUGH
+%x LEX_HIGHLIGHT
+%x LEX_SUPERSCRIPT
+%x LEX_SUBSCRIPT
+%x LEX_BLOCKQUOTE
+%x LEX_ORDERED_LIST
+%x LEX_UNORDERED_LIST
+%x LEX_DESCRIPTION_LIST
+%x LEX_LIST_ELEMENT
+%x LEX_DESCRIPTION_LIST_KEY
+%x LEX_DESCRIPTION_LIST_VALUE
+%x LEX_LINK
+%x LEX_IMAGE
+%x LEX_AUDIO
+%x LEX_VIDEO
+%x LEX_TOP_TITLED_TABLE
+%x LEX_LEFT_TITLED_TABLE
+%x LEX_TWO_WAY_TABLE
+%x LEX_INFOBOX_TITLE
+%x LEX_INFOBOX_CONTENT
+%x LEX_FOOTNOTE_NOTE
+%x LEX_ENDNOTE_NOTE
+%x LEX_PARAGRAPH
+%x LEX_INDENTED_PARAGRAPH
 
 %x IN_HEADING
 %x IN_BLOCKQUOTE
@@ -345,8 +373,10 @@
 int lex_root(Token *token) {
 	yyin = fmemopen(token->data, strlen(token->data), "r");
 	current_token = token;
+
 	BEGIN(LEX_ROOT);
 	yylex();
+
 	free(token->data);
 	token->data = NULL;
 	mark_raw(token);
@@ -354,8 +384,341 @@ int lex_root(Token *token) {
 }
 
 int lex_heading(Token *token) {
-	BEGIN(LEX_HEADING);
 	yyin = fmemopen(token->data, strlen(token->data), "r");
 	current_token = token;
+
+	BEGIN(LEX_HEADING);
 	return yylex();
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_italic(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(LEX_ITALIC);
+	return yylex();
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_bold(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(BOLD);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_underscore(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(UNDERSCORE);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_strikethrough(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(STRIKETHROUGH);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_highlight(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(HIGHLIGHT);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_superscript(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(SUPERSCRIPT);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_subscript(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(SUBSCRIPT);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_blockquote(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(BLOCKQUOTE);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_ordered_list(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(ORDERED_LIST);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_unordered_list(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(UNORDERED_LIST);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_description_list(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(DESCRIPTION_LIST);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_list_element(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(LIST_ELEMENT);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_description_list_key(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(DESCRIPTION_LIST_KEY);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_description_list_value(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(DESCRIPTION_LIST_VALUE);
+
+}
+
+int lex_link(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(LINK);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_image(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(IMAGE);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_audio(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(AUDIO);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_video(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(VIDEO);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_top_titled_table(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(TOP_TITLED_TABLE);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_left_titled_table(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(LEFT_TITLED_TABLE);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_two_way_table(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(TWO_WAY_TABLE);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_infobox_title(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(INFOBOX_TITLE);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_infobox_content(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(INFOBOX_CONTENT);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_footnote_note(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(FOOTNOTE_NOTE);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_endnote_note(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(ENDNOTE_NOTE);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_paragraph(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(PARAGRAPH);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_indented_paragraph(Token *token) {
+	yyin = fmemopen(token->data, strlen(token->data), "r");
+	current_token = token;
+
+	BEGIN(INDENTED_PARAGRAPH);
+
+	free(token->data);
+	token->data = NULL;
+	mark_raw(token);
+	return 0;
+}
+
+int lex_(Token *token) {
+	printf("WARNING: Token is not being lexed: uses `lex_()` as lexing function\n");
+	print_token("", token);
+	return 0;
 }

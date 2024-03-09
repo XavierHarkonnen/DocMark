@@ -1,17 +1,15 @@
-#include "generic_lexer.h"
+#include "docmark_lexer.h"
 
-#include "docmark_lexers.h"
+#include "docmark_token_lexers.h"
 
-int lex_recursive(Token *token) {
-	if (token->num_children > 0) {
-		for (int i = 0; i < token->num_children; i++) {
-			lex_recursive(token->children[i]);
-		}
-	} else {
-		lex_token(token);
-	}
-}
+#include <stdio.h>
 
+/**
+ * @brief Calls the appropriate lexer for the given token
+ * 
+ * @param token The token to be lexed
+ * @return int (0 on success, -1 on failure)
+ */
 static int lex_token(Token *token) {
 	switch (token->type) {
 		case ROOT:
@@ -60,10 +58,6 @@ static int lex_token(Token *token) {
 			return lex_(token);
 		case TWO_WAY_TABLE:
 			return lex_(token);
-		case INFOBOX_TITLE:
-			return lex_(token);
-		case INFOBOX_CONTENT:
-			return lex_(token);
 		case FOOTNOTE_NOTE:
 			return lex_(token);
 		case ENDNOTE_NOTE:
@@ -72,22 +66,18 @@ static int lex_token(Token *token) {
 			return lex_(token);
 		case INDENTED_PARAGRAPH:
 			return lex_(token);
-		case VARIABLE_DEFINITION:
-			return lex_(token);
-		case VARIABLE_RETURN:
-			return lex_(token);
-		case FUNCTION_DEFINITION:
-			return lex_(token);
-		case FUNCTION_RETURN:
-			return lex_(token);
-		case BUILT_IN_VARIABLE_DEFINITION:
-			return lex_(token);
-		case BUILT_IN_VARIABLE_RETURN:
-			return lex_(token);
-		case BUILT_IN_FUNCTION_RETURN:
-			return lex_(token);
 		default:
 			printf("WARNING: Unknown token type: %d\n", token->type);
-			return 0;
+			return lex_(token);
+	}
+}
+
+int lex_recursive(Token *token) {
+	if (token->num_children > 0) {
+		for (int i = 0; i < token->num_children; i++) {
+			lex_recursive(token->children[i]);
+		}
+	} else {
+		lex_token(token);
 	}
 }
