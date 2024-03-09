@@ -4,7 +4,7 @@
 
 static void print_null(const char *field, const char *string) {
 	if (string) {
-		printf("\t%s: %s\n", field, string);
+		printf("\t%s:\n%s\n", field, string);
 	} else {
 		printf("\t%s: NULL\n", field);
 	}

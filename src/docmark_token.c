@@ -76,6 +76,17 @@ void add_child(
 	++parent->num_children;
 }
 
+void delete_children(Token **token) {
+	if ((*token)->children) {
+		for (unsigned int i = 0; i < (*token)->num_children; ++i) {
+			delete_token(&((*token)->children[i]));
+		}
+		free((*token)->children);
+		(*token)->children = NULL;
+	}
+	(*token)->num_children = 0;
+}
+
 void delete_token(Token **token) {
 	if (!token || !(*token)) {
 		return;
@@ -89,13 +100,7 @@ void delete_token(Token **token) {
 		free((*token)->attribute);
 	}
 
-	for (unsigned int i = 0; i < (*token)->num_children; ++i) {
-		delete_token(&((*token)->children[i]));
-	}
-
-	if ((*token)->children) {
-		free((*token)->children);
-	}
+	delete_children(token);
 
 	free(*token);
 	*token = NULL;

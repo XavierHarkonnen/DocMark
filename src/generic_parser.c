@@ -140,7 +140,11 @@ char *parse_token(Token *token, IdentifierArray* heading_identifier_array, Ident
 		print_token("", token);
 		exit(1);
 	} else if (token->num_children != 0 || token->children != NULL) {
-		fprintf(stderr, "ERROR: Cannot parse token; token has children!\n");
+		fprintf(stderr, "ERROR: Cannot parse token; token has %i children!\n", token->num_children);
+		print_token("PARENT", token);
+		for (int i = 0; i < token->num_children; i++) {
+			print_token("CHILD", token->children[i]);
+		}
 		exit(1);
 	}
 
@@ -375,37 +379,34 @@ char *parse_token(Token *token, IdentifierArray* heading_identifier_array, Ident
 	delete_token(&token);
 }
 
-static int parse_recursive(Token *token, IdentifierArray* heading_identifier_array, IdentifierArray* other_identifier_array) {
+static char *parse_recursive(Token *token, IdentifierArray* heading_identifier_array, IdentifierArray* other_identifier_array) {
+	print_token("", token);
+	
 	if (token->data == NULL) {
 		token->data = malloc(1);
+		if (token->data == NULL) {
+			printf("ERROR: Memory allocation failed\n");
+			exit(1);
+		}
+		token->data[0] = '\0';
+	}
+	
+	for (size_t i = 0; i < token->num_children; ++i) {
+		char *data = parse_recursive(token->children[i], heading_identifier_array, other_identifier_array);
+		token->data = realloc(token->data, strlen(token->data) + strlen(data) + 1);
+
 		if (token->data == NULL) {
 			fprintf(stderr, "ERROR: Memory allocation failed\n");
 			exit(1);
 		}
-		token->data[0] = '\0';
-	} else {
-		printf("WARNING: Token is not empty\n%s\n", token->data);
+
+		strcat(token->data, data);
 	}
-	
-	for (size_t i = 0; i < token->num_children; ++i) {
-		if (token->children[i]->num_children != 0) {
-			parse_recursive(token->children[i], heading_identifier_array, other_identifier_array);
-		} else {
-			mark_raw(token->children[i]);
-			char* data = parse_token(token->children[i], heading_identifier_array, other_identifier_array);
 
-			token->data = realloc(token->data, strlen(token->data) + strlen(data) + 1);
-			print_token(token);
+	delete_children(&token);
 
-			if (token->data == NULL) {
-				fprintf(stderr, "ERROR: Memory allocation failed\n");
-				exit(1);
-			}
-
-			strcat(token->data, data);
-		}
-	}
-	return 0;
+	mark_raw(token);
+	return parse_token(token, heading_identifier_array, other_identifier_array);
 }
 
 int parse_tree(Token *root_token, IdentifierArray* heading_identifier_array, IdentifierArray* other_identifier_array, FILE *output_file) {

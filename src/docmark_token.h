@@ -81,6 +81,8 @@ void add_child(
 	Token *parent
 );
 
+void delete_children(Token **token);
+
 void delete_token(Token **token);
 
 #endif
