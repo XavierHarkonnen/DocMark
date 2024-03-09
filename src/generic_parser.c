@@ -395,6 +395,7 @@ static int parse_recursive(Token *token, IdentifierArray* heading_identifier_arr
 			char* data = parse_token(token->children[i], heading_identifier_array, other_identifier_array);
 
 			token->data = realloc(token->data, strlen(token->data) + strlen(data) + 1);
+			print_token(token);
 
 			if (token->data == NULL) {
 				fprintf(stderr, "ERROR: Memory allocation failed\n");
