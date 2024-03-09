@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
 	IdentifierArray *heading_identifier_array = create_identifier_array();
 	IdentifierArray *other_identifier_array = create_identifier_array();
 
-	lex_tree(root);
+	lex_recursive(root);
 	parse_tree(root, heading_identifier_array, other_identifier_array, output_file);
 
 	return 0;

@@ -3,6 +3,6 @@
 
 #include "docmark_token.h"
 
-int lex_tree(Token *root_token);
+int lex_recursive(Token *token);
 
 #endif
